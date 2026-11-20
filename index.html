@@ -5,489 +5,476 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ekagra.808 — music for spirituality</title>
 <meta name="description" content="ekagra.808 is a music channel for spirituality: chants and mantras with beats, meditative instrumentals and devotional songs.">
-<meta name="theme-color" content="#050506">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23050506'/%3E%3Ccircle cx='16' cy='10.500' r='5.500' fill='none' stroke='%23EDEDE8' stroke-width='2.500'/%3E%3Ccircle cx='16' cy='21.500' r='6.500' fill='none' stroke='%23EDEDE8' stroke-width='2.500'/%3E%3Ccircle cx='16' cy='15.500' r='2' fill='%23FF6A2A'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#070707">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070707'/%3E%3Ccircle cx='16' cy='10.5' r='5.5' fill='none' stroke='%23ECE8DF' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='21.5' r='6.5' fill='none' stroke='%23ECE8DF' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='15.5' r='2' fill='%23FF6A2A'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Michroma&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050506;
-    --bg-raised: #101012;
-    --line: #2a2a2e;
-    --text: #EDEDE8;
-    --muted: #a9a9a3;
-    --accent: #FF7A3A;
-    --accent-ink: #1a0a02;
-    --wide: "Michroma", "Eurostile", "Segoe UI", system-ui, sans-serif;
-    --body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bg: #070707; --panel: #0e0e0d; --line: #262521;
+    --text: #ECE8DF; --muted: #A39E92; --champ: #CDBB95; --gem: #FF6A2A;
+    --serif: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    --wide: "Michroma", "Segoe UI", sans-serif;
+    --body: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--body);
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
-  a { color: inherit; }
-  img { max-width: 100%; display: block; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
-  .wrap { width: min(100% - 2rem, 68rem); margin-inline: auto; }
-  .skip {
-    position: absolute; left: 1rem; top: -4rem; z-index: 10;
-    background: var(--accent); color: var(--accent-ink);
-    padding: .5rem .9rem; border-radius: 6px; font-weight: 600; text-decoration: none;
-  }
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  html { overflow-x: hidden; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 1.05rem; line-height: 1.7; overflow-x: hidden; }
+  img { display: block; max-width: 100%; }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 1px solid var(--gem); outline-offset: 6px; }
+  .wrap { width: min(100% - 2.5rem, 72rem); margin-inline: auto; }
+  .label { font-family: var(--wide); font-size: .62rem; letter-spacing: .42em; text-transform: uppercase; color: var(--champ); margin: 0; }
+  .skip { position: absolute; left: 1rem; top: -4rem; z-index: 10; background: var(--champ); color: #111; padding: .5rem .9rem; }
   .skip:focus { top: 1rem; }
 
-  /* Header */
-  header { position: relative; z-index: 3; }
-  header .wrap {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-block: 1.1rem;
-  }
-  .brand {
-    font-family: var(--wide); font-size: .8rem; letter-spacing: .28em;
-    text-transform: uppercase; text-decoration: none;
-  }
-  .brand i, h1 i {
-    display: inline-block; width: .42em; height: .42em; border-radius: 50%;
-    background: var(--accent); margin: 0 .22em 0 .06em; vertical-align: baseline;
-  }
-  .nav-link {
-    font-size: .95rem; text-decoration: none; color: var(--muted);
-    padding: .5rem .2rem; border-bottom: 1px solid transparent;
-  }
-  .nav-link:hover { color: var(--text); border-bottom-color: var(--accent); }
+  header { position: absolute; inset: 0 0 auto 0; z-index: 5; }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; padding-block: 1.6rem; }
+  header nav { display: flex; gap: 2.2rem; }
+  header a { font-family: var(--wide); font-size: .6rem; letter-spacing: .34em; text-transform: uppercase; color: var(--muted); padding: .6rem 0; }
+  header a:hover { color: var(--text); }
 
-  main { position: relative; }
-  main > * { position: relative; z-index: 1; }
+  /* 1 — logo */
+  .hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; overflow: hidden; padding: 6rem 0 3rem; }
+  .hero::before { content: ""; position: absolute; left: 50%; top: 42%; width: 90vmax; height: 90vmax; transform: translate(-50%, -50%); background: radial-gradient(closest-side, #1b1a17 0%, #0c0c0b 45%, transparent 70%); }
+  .hero .inner { position: relative; display: grid; justify-items: center; }
+  .stage { perspective: 900px; }
+  .symbol { position: relative; display: block; border: 0; padding: 0; background: none; cursor: pointer; transform-style: preserve-3d; -webkit-tap-highlight-color: transparent; }
+  .symbol img { height: clamp(18rem, 54vh, 32rem); width: auto; transform: translateZ(50px); filter: drop-shadow(0 30px 40px rgba(0,0,0,.6)); }
+  .symbol.thump img { animation: thump .5s ease-out; }
+  @keyframes thump { 30% { transform: translateZ(50px) scale(1.04); } }
+  .waves { position: absolute; inset: 0; pointer-events: none; transform: translateZ(-60px); transform-style: preserve-3d; }
+  .wave { position: absolute; left: 50.8%; top: 36.2%; border: 1px solid var(--gem); border-radius: 50%; transform: translate(-50%, -50%); animation: wave 2.2s cubic-bezier(.15,.6,.3,1) forwards; }
+  .wave.still { animation: none; border-color: rgba(205,187,149,.16); }
+  @keyframes wave { from { width: 1rem; height: 1rem; opacity: 1; } to { width: 90rem; height: 90rem; opacity: 0; } }
+  h1 { font-family: var(--wide); font-weight: 400; font-size: clamp(1.3rem, 5vw, 2.6rem); letter-spacing: .34em; margin: 2.4rem -.34em 0 0; text-transform: uppercase; }
+  h1 i { display: inline-block; width: .4em; height: .4em; border-radius: 50%; background: var(--gem); margin: 0 .3em 0 .04em; box-shadow: 0 0 18px rgba(255,106,42,.7); }
+  .tag { margin-top: 1.1rem; }
+  .cue { margin-top: 3rem; display: grid; justify-items: center; gap: .7rem; }
+  .cue .label { color: var(--muted); }
+  .cue::after { content: ""; width: 1px; height: 2.6rem; background: linear-gradient(var(--champ), transparent); }
 
-  /* Hero */
-  .hero { overflow: hidden; text-align: center; padding-block: 1.5rem 4.5rem; }
-  .hero .wrap { display: grid; justify-items: center; }
-  .symbol-wrap { position: relative; will-change: transform; }
-  .symbol {
-    position: relative; display: block; padding: 0; border: 0; background: none;
-    cursor: pointer; border-radius: 40% / 25%;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .symbol img { height: clamp(17rem, 52vh, 30rem); width: auto; }
-  .symbol.thump img { animation: thump .45s ease-out; }
-  @keyframes thump {
-    0% { transform: scale(1); }
-    25% { transform: scale(1.045); }
-    100% { transform: scale(1); }
-  }
-  .waves { position: absolute; inset: 0; pointer-events: none; }
-  .wave {
-    position: absolute; left: 50.8%; top: 36.2%;
-    width: 1.5rem; height: 1.5rem;
-    border: 2px solid var(--accent); border-radius: 50%;
-    transform: translate(-50%, -50%);
-    animation: wave 1.7s cubic-bezier(.2, .6, .3, 1) forwards;
-  }
-  @keyframes wave {
-    0% { width: 1.5rem; height: 1.5rem; opacity: .95; }
-    100% { width: 72rem; height: 72rem; opacity: 0; }
-  }
-  .hint {
-    margin: .9rem 0 0; color: var(--muted);
-    font-size: .8rem; letter-spacing: .14em; text-transform: uppercase;
-  }
-  h1 {
-    margin: 1.9rem 0 0;
-    font-family: var(--wide); font-weight: 400; text-transform: uppercase;
-    font-size: clamp(1.5rem, 6.4vw, 3.6rem);
-    letter-spacing: .2em; margin-right: -.2em; line-height: 1.1;
-  }
-  .tagline {
-    margin: 1rem 0 0; color: var(--muted);
-    font-family: var(--wide); text-transform: uppercase;
-    font-size: clamp(.6rem, 1.9vw, .8rem); letter-spacing: .32em; line-height: 1.9;
-  }
-  .lede { margin: 1.8rem auto 0; font-size: clamp(1.1rem, 2.4vw, 1.3rem); max-width: 32rem; }
-  .sub { margin: .5rem auto 0; color: var(--muted); max-width: 30rem; }
-  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
-  .btn {
-    display: inline-flex; align-items: center; gap: .55rem;
-    min-height: 3rem; padding: .7rem 1.3rem;
-    border: 1px solid var(--line); border-radius: 999px;
-    background: var(--bg-raised); color: var(--text);
-    font-weight: 600; font-size: 1rem; text-decoration: none;
-    transition: border-color .15s, background-color .15s;
-  }
-  .btn:hover { border-color: var(--accent); }
-  .btn svg { width: 1.2rem; height: 1.2rem; fill: currentColor; flex: none; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-  .btn.primary:hover { background: #ff9558; border-color: #ff9558; }
+  /* 2 — about */
+  section { position: relative; padding: clamp(5rem, 14vh, 10rem) 0; }
+  .about .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+  .big { font-family: var(--serif); font-weight: 300; font-size: clamp(2.4rem, 5.6vw, 4.6rem); line-height: 1.05; margin: 1.4rem 0 1.6rem; letter-spacing: -.01em; }
+  .big em { font-style: italic; color: var(--champ); }
+  .about p.copy { color: var(--muted); max-width: 30rem; margin: 0; }
+  .frame { position: relative; overflow: hidden; aspect-ratio: 1 / 1.12; border-radius: 2px; background: radial-gradient(120% 90% at 30% 20%, #cfc9c2, #a39c95); }
+  .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; filter: drop-shadow(0 26px 22px rgba(40,34,28,.5)); }
+  .frame.is3d canvas { display: block; }
+  .frame.is3d .flat { display: none; }
+  .frame .flat { position: absolute; left: 50%; top: 4%; height: 92%; aspect-ratio: 904 / 1450; transform: translateX(-50%); }
+  .frame .metal { position: absolute; inset: 0;
+    background: linear-gradient(135deg, #fff 0%, #8d8d90 22%, #f5f5f2 40%, #5f6063 58%, #ecece8 74%, #77787b 100%);
+    -webkit-mask: url(assets/symbol-cream.svg) center / contain no-repeat; mask: url(assets/symbol-cream.svg) center / contain no-repeat; }
+  .frame .gemdot { position: absolute; left: 50.8%; top: 36.2%; width: 3.2%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: var(--gem); box-shadow: 0 0 22px 6px rgba(255,106,42,.75); }
 
-  /* Sections */
-  section { padding-block: 4.5rem; }
-  h2 {
-    margin: 0 0 .8rem;
-    font-family: var(--wide); font-weight: 400; text-transform: uppercase;
-    font-size: clamp(1.05rem, 3vw, 1.5rem); letter-spacing: .2em; line-height: 1.4;
-  }
-  .section-note { margin: 0 0 2.2rem; color: var(--muted); max-width: 34rem; }
+  /* 3 — song */
+  .song { border-block: 1px solid var(--line); background: var(--panel); overflow: hidden; }
+  .song .wrap { display: grid; grid-template-columns: minmax(0, 26rem) 1fr; gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+  .redcover { position: relative; aspect-ratio: 1; overflow: hidden; background: #B2231D; border-radius: 2px; box-shadow: 0 40px 80px -30px rgba(178,35,29,.55); }
+  .redcover img { position: absolute; left: -10%; top: -22%; width: 120%; height: auto; max-width: none; }
+  .song h2 { font-family: var(--serif); font-weight: 300; font-style: italic; font-size: clamp(3rem, 8vw, 6.5rem); line-height: .95; margin: 1.2rem 0 1.8rem; }
+  .bars { display: flex; align-items: center; gap: 3px; height: 4rem; margin-bottom: 2.2rem; }
+  .bars span { flex: 1; background: #8f8468; border-radius: 1px; min-width: 1px; animation: eq 1.6s ease-in-out infinite; }
+  .bars span.on { background: var(--gem); }
+  @keyframes eq { 50% { transform: scaleY(.45); } }
+  .play { display: inline-flex; align-items: center; gap: 1rem; font-family: var(--wide); font-size: .64rem; letter-spacing: .34em; text-transform: uppercase; }
+  .play b { display: grid; place-items: center; width: 3.6rem; height: 3.6rem; border-radius: 50%; border: 1px solid var(--champ); transition: background-color .3s; }
+  .play:hover b { background: rgba(205,187,149,.14); }
+  .play b::after { content: ""; border-left: .8rem solid var(--text); border-block: .5rem solid transparent; margin-left: .2rem; }
+  .ghost { position: absolute; left: 0; bottom: -3.5rem; font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(8rem, 26vw, 22rem); line-height: 1; color: transparent; -webkit-text-stroke: 1px #25241f; white-space: nowrap; pointer-events: none; }
 
-  /* Artwork */
-  .art { display: grid; gap: 1.5rem; grid-template-columns: 1fr 1fr; align-items: start; }
-  .art figure { margin: 0; will-change: transform; }
-  .art figure:nth-child(2) { margin-top: 7rem; }
-  .art img { width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--line); }
+  /* 4 — platforms */
+  .plat { overflow: hidden; }
+  .plat h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.05; margin: 1.2rem 0 3rem; }
+  .rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: 3rem 1fr auto; align-items: baseline; gap: 1rem; padding: 2rem 0; border-bottom: 1px solid var(--line); transition: padding .4s cubic-bezier(.2,.7,.2,1), color .3s; }
+  a.row:hover { padding-inline: 1rem; color: var(--champ); }
+  .row small { font-family: var(--wide); font-size: .6rem; letter-spacing: .3em; color: var(--muted); }
+  .row strong { font-family: var(--serif); font-weight: 300; font-size: clamp(2rem, 6vw, 4.2rem); line-height: 1; }
+  .row span { font-family: var(--wide); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
 
-  /* Listen */
-  .places { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); list-style: none; padding: 0; margin: 0; }
-  .place {
-    display: flex; flex-direction: column; gap: .4rem; height: 100%;
-    padding: 1.5rem; border: 1px solid var(--line); border-radius: 14px;
-    background: var(--bg-raised); text-decoration: none;
-    transition: border-color .15s, transform .15s;
-  }
-  .place:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .place svg { width: 1.9rem; height: 1.9rem; fill: var(--accent); margin-bottom: .7rem; }
-  .place strong { font-size: 1.2rem; font-weight: 600; }
-  .place span { color: var(--muted); }
-  .place em { font-style: normal; font-size: .9rem; font-weight: 600; color: var(--accent); margin-top: auto; padding-top: 1rem; }
+  footer { padding: 3rem 0; text-align: center; }
+  footer .label { color: var(--muted); line-height: 2.2; }
 
-  .kinds { display: grid; gap: 0 2rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
-  .kinds li { padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
-  .kinds b { display: block; font-family: var(--wide); font-size: .7rem; font-weight: 400; letter-spacing: .2em; color: var(--accent); margin-bottom: .5rem; }
-  .kinds span { font-size: 1.25rem; line-height: 1.3; }
-
-  /* Scroll snake */
-  .snake { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: visible; }
-
-  footer { border-top: 1px solid var(--line); position: relative; z-index: 2; background: var(--bg); }
-  footer .wrap { padding-block: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; justify-content: space-between; color: var(--muted); font-size: .9rem; }
-
-  @media (max-width: 40rem) {
-    .hero { padding-bottom: 3.5rem; }
-    .actions { width: 100%; }
-    .btn { flex: 1 1 100%; justify-content: center; }
-    section { padding-block: 3.4rem; }
-    .art { grid-template-columns: 1fr; }
-    .art figure:nth-child(2) { margin-top: 0; }
+  @media (max-width: 46rem) {
+    header nav { gap: 1.2rem; }
+    header .wrap > a { display: none; }
+    header .wrap { justify-content: center; }
+    .about .wrap, .song .wrap { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 2.2rem 1fr auto; }
   }
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .snake { display: none; }
-    .symbol.thump img { animation: none; }
-    .wave { width: 14rem; height: 14rem; animation: fade 1s linear forwards; }
-    @keyframes fade { from { opacity: .8; } to { opacity: 0; } }
-    .btn, .place { transition: none; }
-    .place:hover { transform: none; }
+    .wave:not(.still), .symbol.thump img, .bars span { animation: none; }
+    .row, .play b { transition: none; }
   }
 </style>
 </head>
 <body>
 <a class="skip" href="#listen">Skip to listen</a>
-
 <header>
   <div class="wrap">
-    <a class="brand" href="./" aria-label="ekagra.808 home">Ekagra<i></i>808</a>
-    <a class="nav-link" href="#listen">Listen</a>
+    <a href="#top">Ekagra 808</a>
+    <nav aria-label="Sections"><a href="#about">About</a><a href="#song">Music</a><a href="#listen">Listen</a></nav>
   </div>
 </header>
 
-<main>
-  <svg class="snake" aria-hidden="true">
-    <defs>
-      <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f4f4f1"/>
-        <stop offset=".35" stop-color="#9c9da1"/>
-        <stop offset=".6" stop-color="#e3e3df"/>
-        <stop offset="1" stop-color="#7d7e83"/>
-      </linearGradient>
-      <mask id="body" maskUnits="userSpaceOnUse" x="-200" y="-200" width="100" height="100">
-        <path class="m-tail" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round"/>
-        <path class="m-body" fill="none" stroke="#fff" stroke-width="24" stroke-linecap="round"/>
-      </mask>
-    </defs>
-    <g mask="url(#body)">
-      <path class="s-base" fill="none" stroke="url(#silver)" stroke-width="26"/>
-      <path class="s-band" fill="none" stroke="#050506" stroke-opacity=".5" stroke-width="26" stroke-dasharray="5 11"/>
-      <path class="s-shine" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4"/>
-    </g>
-    <g class="s-head" visibility="hidden">
-      <path d="M-20 -12 C-6 -17 12 -13 22 0 C12 13 -6 17 -20 12 Z" fill="url(#silver)" stroke="#050506" stroke-opacity=".35"/>
-      <circle cx="6" cy="-7" r="2" fill="#050506"/>
-      <circle cx="6" cy="7" r="2" fill="#050506"/>
-      <circle cx="-4" cy="0" r="4" fill="#FF6A2A"/>
-    </g>
-  </svg>
-
+<main id="top">
   <div class="hero">
-    <div class="wrap">
-      <div class="symbol-wrap" data-speed="-0.12">
-        <div class="waves" aria-hidden="true"></div>
+    <div class="inner">
+      <div class="stage">
         <button class="symbol" type="button" aria-label="Play an 808 beat and send out sound waves">
+          <span class="waves" aria-hidden="true">
+            <span class="wave still" style="width:26rem;height:26rem"></span>
+            <span class="wave still" style="width:42rem;height:42rem"></span>
+            <span class="wave still" style="width:60rem;height:60rem"></span>
+          </span>
           <img src="assets/symbol-cream.svg" width="904" height="1450" alt="ekagra.808 symbol: a snake coiled into a figure eight around two sets of speaker rings, with an orange gem on its head">
         </button>
       </div>
-      <p class="hint">Tap the symbol</p>
       <h1 aria-label="ekagra.808">Ekagra<i></i>808</h1>
-      <p class="tagline">Drops of clarity · Beat of alignment</p>
-      <p class="lede">Music for spirituality.</p>
-      <p class="sub">Chants and mantras with beats, meditative instrumentals and devotional songs.</p>
-      <div class="actions">
-        <a class="btn primary" href="#" data-todo="youtube">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-youtube"/></svg>
-          Watch on YouTube
-        </a>
-        <a class="btn" href="#" data-todo="spotify">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-spotify"/></svg>
-          Listen on Spotify
-        </a>
-      </div>
+      <p class="label tag">Drops of clarity · Beat of alignment</p>
+      <div class="cue"><p class="label">Tap the symbol · Scroll</p></div>
     </div>
   </div>
 
-  <section id="art" aria-labelledby="art-h">
+  <section class="about" id="about">
     <div class="wrap">
-      <h2 id="art-h">The symbol</h2>
-      <p class="section-note">The ekagra.808 artwork.</p>
-      <div class="art">
-        <figure data-speed="-0.06">
-          <img src="assets/snake-silver.webp" width="2000" height="2000" loading="lazy" alt="The ekagra.808 symbol in polished silver: a metal snake coiled into a figure eight, with the words Drops of clarity, Beat of alignment">
-        </figure>
-        <figure data-speed="0.07">
-          <img src="assets/snake-red.webp" width="2000" height="2000" loading="lazy" alt="The ekagra.808 symbol as a black and cream print on red, the snake's head carrying an orange gem">
-        </figure>
+      <div data-speed="0.25">
+        <p class="label">About us</p>
+        <p class="big">Music for <em>spirituality.</em></p>
+        <p class="copy">Chants and mantras with beats, meditative instrumentals and devotional songs.</p>
+      </div>
+      <div class="frame" data-speed="-0.35">
+        <div class="flat"><div class="metal" role="img" aria-label="ekagra.808 symbol in silver"></div><span class="gemdot"></span></div>
+        <canvas aria-label="A silver snake coiled into a figure eight, slowly moving" role="img"></canvas>
       </div>
     </div>
   </section>
 
-  <section id="listen">
+  <section class="song" id="song">
+    <div class="ghost" aria-hidden="true">Jagay Chalo</div>
     <div class="wrap">
-      <h2>Listen and watch</h2>
-      <p class="section-note">Find ekagra.808 on these platforms.</p>
-      <ul class="places">
-        <li>
-          <a class="place" href="#" data-todo="youtube">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-youtube"/></svg>
-            <strong>YouTube</strong>
-            <span>Videos and full tracks.</span>
-            <em>Open channel →</em>
-          </a>
-        </li>
-        <li>
-          <a class="place" href="#" data-todo="spotify">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-spotify"/></svg>
-            <strong>Spotify</strong>
-            <span>Stream the music.</span>
-            <em>Open profile →</em>
-          </a>
-        </li>
-        <li>
-          <a class="place" href="#" data-todo="instagram">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-instagram"/></svg>
-            <strong>Instagram</strong>
-            <span>Clips and updates.</span>
-            <em>Open profile →</em>
-          </a>
-        </li>
-      </ul>
+      <div data-speed="0.3">
+        <div class="redcover"><img src="assets/symbol-dark.svg" width="904" height="1450" loading="lazy" alt="ekagra.808 symbol printed in black on red"></div>
+      </div>
+      <div data-speed="-0.15">
+        <p class="label">Latest song</p>
+        <h2>Jagay Chalo</h2>
+        <div class="bars" aria-hidden="true"></div>
+        <a class="play" href="#listen"><b></b>Listen now</a>
+      </div>
     </div>
   </section>
 
-  <section id="kinds" aria-labelledby="kinds-h">
+  <section class="plat" id="listen">
     <div class="wrap">
-      <h2 id="kinds-h">What you'll hear</h2>
-      <p class="section-note">A mix of three kinds of music.</p>
-      <ul class="kinds">
-        <li><b>01</b><span>Chants and mantras with beats</span></li>
-        <li><b>02</b><span>Meditative instrumentals</span></li>
-        <li><b>03</b><span>Devotional songs</span></li>
+      <p class="label">Listen everywhere</p>
+      <h2>Find ekagra.808</h2>
+      <ul class="rows">
+        <li><div class="row" data-platform="youtube"><small>01</small><strong>YouTube</strong><span>Link soon</span></div></li>
+        <li><div class="row" data-platform="spotify"><small>02</small><strong>Spotify</strong><span>Link soon</span></div></li>
+        <li><div class="row" data-platform="instagram"><small>03</small><strong>Instagram</strong><span>Link soon</span></div></li>
       </ul>
     </div>
   </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <span>ekagra.808</span>
-    <span>Drops of clarity · Beat of alignment</span>
-  </div>
-</footer>
+<footer><p class="label">Ekagra 808 · Drops of clarity · Beat of alignment</p></footer>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-youtube" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.2 3.6-6.2 3.6Z"/></symbol>
-  <symbol id="i-spotify" viewBox="0 0 24 24"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.75.75 0 0 1-1 .25c-2.8-1.7-6.4-2.1-10.6-1.1a.75.75 0 1 1-.3-1.5c4.6-1 8.5-.6 11.7 1.3.3.2.4.7.2 1Zm1.5-3.3a.94.94 0 0 1-1.3.3c-3.2-2-8.1-2.5-11.9-1.4a.94.94 0 1 1-.5-1.8c4.3-1.3 9.7-.7 13.4 1.6.4.3.6.9.3 1.3Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.12 1.12 0 1 1-.7-2.1c4.3-1.3 11.3-1.1 15.800 1.600a1.12 1.12 0 1 1-1.200 1.900Z"/></symbol>
-  <symbol id="i-instagram" viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.8.1 3.3.1 4.800 1.700 4.900 4.900.1 1.300.1 1.600.1 4.800s0 3.600-.1 4.800c-.1 3.200-1.700 4.800-4.900 4.900-1.300.1-1.600.1-4.800.1s-3.600 0-4.800-.1c-3.300-.1-4.800-1.700-4.900-4.900C2.200 15.600 2.200 15.200 2.200 12s0-3.600.1-4.800C2.400 4 4 2.400 7.200 2.300c1.200-.1 1.600-.1 4.800-.1ZM12 0C8.700 0 8.300 0 7.100.1 2.700.3.300 2.700.1 7.100 0 8.300 0 8.700 0 12s0 3.700.1 4.900c.2 4.400 2.600 6.800 7 7 1.200.1 1.600.1 4.900.1s3.700 0 4.900-.1c4.400-.2 6.800-2.600 7-7 .1-1.200.1-1.600.1-4.900s0-3.700-.1-4.900c-.2-4.400-2.600-6.800-7-7C15.700 0 15.300 0 12 0Zm0 5.800a6.200 6.200 0 1 0 0 12.400 6.200 6.200 0 0 0 0-12.400ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.400-11.800a1.440 1.440 0 1 0 0 2.880 1.440 1.440 0 0 0 0-2.880Z"/></symbol>
-</svg>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script>
 (function () {
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---- Tap the symbol: sound waves + an 808 ---- */
-  var symbol = document.querySelector('.symbol');
-  var waves = document.querySelector('.waves');
-  var ctx;
+  /* waveform bars */
+  var bars = document.querySelector('.bars');
+  for (var i = 0; i < 72; i++) {
+    var s = document.createElement('span');
+    var h = 18 + 70 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.23)) + 12 * Math.abs(Math.sin(i * 2.7));
+    s.style.height = Math.min(100, h).toFixed(0) + '%';
+    s.style.animationDuration = (1.1 + (i * 37 % 10) / 10).toFixed(2) + 's';
+    s.style.animationDelay = (-(i * 53 % 17) / 10).toFixed(2) + 's';
+    if (i < 26) s.className = 'on';
+    bars.appendChild(s);
+  }
 
-  function kick() {
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
+  /* tap the symbol: 808 + sound waves */
+  var symbol = document.querySelector('.symbol'), waves = document.querySelector('.waves'), ctx;
+  symbol.addEventListener('click', function () {
     try {
-      ctx = ctx || new AC();
-      if (ctx.state === 'suspended') ctx.resume();
-      var t = ctx.currentTime;
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(150, t);
-      osc.frequency.exponentialRampToValueAtTime(46, t + 0.13);
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.8, t + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 1.15);
-    } catch (e) { /* sound is optional */ }
-  }
-
-  function ripple() {
-    var count = reduce.matches ? 1 : 4;
-    for (var i = 0; i < count; i++) {
-      var ring = document.createElement('span');
-      ring.className = 'wave';
-      ring.style.animationDelay = (i * 0.16) + 's';
-      ring.addEventListener('animationend', function () { this.remove(); });
-      waves.appendChild(ring);
+      var AC = window.AudioContext || window.webkitAudioContext;
+      ctx = ctx || new AC(); if (ctx.state === 'suspended') ctx.resume();
+      var t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(46, t + .13);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.8, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + 1.1);
+      o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 1.15);
+    } catch (e) {}
+    if (reduce) return;
+    for (var i = 0; i < 5; i++) {
+      var r = document.createElement('span'); r.className = 'wave';
+      r.style.animationDelay = (i * .18) + 's';
+      r.addEventListener('animationend', function () { this.remove(); });
+      waves.appendChild(r);
     }
-    symbol.classList.remove('thump');
-    void symbol.offsetWidth;
-    symbol.classList.add('thump');
-  }
+    symbol.classList.remove('thump'); void symbol.offsetWidth; symbol.classList.add('thump');
+  });
 
-  symbol.addEventListener('click', function () { kick(); ripple(); });
+  if (reduce || !window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
 
-  /* ---- Scroll: parallax + crawling snake ---- */
-  var main = document.querySelector('main');
-  var svg = document.querySelector('.snake');
-  var paths = svg.querySelectorAll('path.s-base, path.s-band, path.s-shine, path.m-body, path.m-tail');
-  var base = svg.querySelector('.s-base');
-  var mBody = svg.querySelector('.m-body');
-  var mTail = svg.querySelector('.m-tail');
-  var mask = svg.querySelector('#body');
-  var head = svg.querySelector('.s-head');
-  var movers = document.querySelectorAll('[data-speed]');
-
-  var total = 0, bodyLen = 0, samples = [], STEP = 8;
-  var cur = 0, target = 0, raf = 0;
-
-  function rounded(pts, r) {
-    var d = 'M' + pts[0][0] + ' ' + pts[0][1];
-    for (var i = 1; i < pts.length - 1; i++) {
-      var p = pts[i], a = pts[i - 1], b = pts[i + 1];
-      var la = Math.hypot(p[0] - a[0], p[1] - a[1]);
-      var lb = Math.hypot(b[0] - p[0], b[1] - p[1]);
-      var rr = Math.min(r, la / 2, lb / 2);
-      var ax = p[0] + (a[0] - p[0]) / la * rr, ay = p[1] + (a[1] - p[1]) / la * rr;
-      var bx = p[0] + (b[0] - p[0]) / lb * rr, by = p[1] + (b[1] - p[1]) / lb * rr;
-      d += ' L' + ax + ' ' + ay + ' Q' + p[0] + ' ' + p[1] + ' ' + bx + ' ' + by;
-    }
-    var last = pts[pts.length - 1];
-    return d + ' L' + last[0] + ' ' + last[1];
-  }
-
-  function build() {
-    var W = main.clientWidth, H = main.scrollHeight;
-    var gutter = (W - Math.min(W - 32, 1088)) / 2;
-    var inset = gutter > 70 ? gutter - 40 : 1;
-    var xL = inset, xR = W - inset;
-    var ys = [];
-    main.querySelectorAll('section').forEach(function (s) { ys.push(s.offsetTop); });
-    ys.push(H - 10);
-    var pts = [[W + 90, ys[0]]];
-    var left = true;
-    for (var i = 0; i < ys.length; i++) {
-      var x = left ? xL : xR;
-      pts.push([x, ys[i]]);
-      if (i < ys.length - 1) pts.push([x, ys[i + 1]]);
-      left = !left;
-    }
-    var d = rounded(pts, 70);
-    paths.forEach(function (p) { p.setAttribute('d', d); });
-    mask.setAttribute('x', -100); mask.setAttribute('y', -100);
-    mask.setAttribute('width', W + 300); mask.setAttribute('height', H + 200);
-
-    total = base.getTotalLength();
-    bodyLen = Math.min(520, Math.max(300, W * 0.8));
-    mBody.setAttribute('stroke-dasharray', (bodyLen * 0.72) + ' ' + (total + bodyLen));
-    mTail.setAttribute('stroke-dasharray', bodyLen + ' ' + (total + bodyLen));
-    samples = [];
-    for (var l = 0; l <= total; l += STEP) samples.push(base.getPointAtLength(l).y);
-    update(true);
-  }
-
-  function lengthForY(y) {
-    var lo = 0, hi = samples.length - 1;
-    if (y <= samples[0]) return 0;
-    while (lo < hi) {
-      var mid = (lo + hi + 1) >> 1;
-      if (samples[mid] <= y) lo = mid; else hi = mid - 1;
-    }
-    return lo * STEP;
-  }
-
-  function draw() {
-    mBody.setAttribute('stroke-dashoffset', -(cur - bodyLen * 0.72));
-    mTail.setAttribute('stroke-dashoffset', -(cur - bodyLen));
-    if (cur < 2) { head.setAttribute('visibility', 'hidden'); return; }
-    var p = base.getPointAtLength(cur), q = base.getPointAtLength(Math.max(0, cur - 6));
-    var ang = Math.atan2(p.y - q.y, p.x - q.x) * 180 / Math.PI;
-    head.setAttribute('visibility', 'visible');
-    head.setAttribute('transform', 'translate(' + p.x + ' ' + p.y + ') rotate(' + ang + ')');
-  }
-
-  function parallax() {
-    var vh = window.innerHeight;
-    movers.forEach(function (el) {
-      var r = el.getBoundingClientRect();
-      var off = (r.top + r.height / 2 - vh / 2) - (el._y || 0);
-      el._y = off * parseFloat(el.dataset.speed);
-      el.style.transform = 'translate3d(0,' + el._y.toFixed(1) + 'px,0)';
+  /* smooth scroll */
+  if (window.Lenis) {
+    var lenis = new Lenis({ duration: 1.25 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); lenis.scrollTo(target); target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); }
+      });
     });
   }
 
-  function tick() {
-    raf = 0;
-    cur += (target - cur) * 0.085;
-    if (Math.abs(target - cur) < 0.6) cur = target;
-    draw();
-    if (cur !== target) raf = requestAnimationFrame(tick);
-  }
+  /* intro */
+  gsap.from('.symbol', { scale: .86, rotationY: -35, duration: 2, ease: 'expo.out' });
+  gsap.from('h1', { letterSpacing: '.7em', duration: 2, ease: 'expo.out' });
 
-  function update(jump) {
-    if (reduce.matches) return;
-    parallax();
-    if (!total) return;
-    var y = -main.getBoundingClientRect().top + window.innerHeight * 0.6;
-    target = Math.min(total, lengthForY(y));
-    if (jump === true) { cur = target; draw(); return; }
-    if (!raf) raf = requestAnimationFrame(tick);
-  }
+  /* 3D tilt on the symbol */
+  var rx = gsap.quickTo(symbol, 'rotationX', { duration: .8, ease: 'power3.out' });
+  var ry = gsap.quickTo(symbol, 'rotationY', { duration: .8, ease: 'power3.out' });
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch') return;
+    ry((e.clientX / innerWidth - .5) * 26);
+    rx(-(e.clientY / innerHeight - .5) * 18);
+  });
 
-  if (!reduce.matches) {
-    build();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', build);
-    window.addEventListener('load', build);
-    if ('ResizeObserver' in window) {
-      var lastH = 0;
-      new ResizeObserver(function () {
-        if (main.scrollHeight !== lastH) { lastH = main.scrollHeight; build(); }
-      }).observe(main);
+  /* scroll-linked motion (positions only: nothing is hidden) */
+  gsap.to('.hero .inner', { yPercent: 22, scale: .9, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  gsap.to('.waves', { scale: 1.5, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+  var desktop = matchMedia('(min-width: 46.01rem)').matches;
+  gsap.utils.toArray('[data-speed]').forEach(function (el) {
+    var d = parseFloat(el.dataset.speed) * (desktop ? 220 : 70);
+    gsap.fromTo(el, { y: d }, { y: -d, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: .6 } });
+  });
+  gsap.fromTo('.ghost', { xPercent: 8 }, { xPercent: -45, ease: 'none', scrollTrigger: { trigger: '.song', start: 'top bottom', end: 'bottom top', scrub: .6 } });
+  gsap.fromTo('.redcover img', { yPercent: -4, scale: 1.08 }, { yPercent: 4, scale: 1, ease: 'none', scrollTrigger: { trigger: '.song', start: 'top bottom', end: 'bottom top', scrub: true } });
+  gsap.utils.toArray('.row').forEach(function (row, i) {
+    gsap.fromTo(row, { x: 60 + i * 30 }, { x: 0, ease: 'power2.out', scrollTrigger: { trigger: row, start: 'top 105%', end: 'top 70%', scrub: .5 } });
+  });
+})();
+</script>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const frame = document.querySelector('.frame');
+const canvas = frame.querySelector('canvas');
+
+try {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.82;
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.03).texture;
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+  camera.position.set(0, 0, 8.9);
+
+  const V = THREE.Vector3;
+  const A = 1.9, BODY_R = 0.19, LEN = 0.9;
+
+  /* figure-eight path, small loop on top, passing over itself at the middle */
+  const curve = (t) => {
+    const s = Math.sin(t), c = Math.cos(t), den = 1 + s * s, k = 1 - 0.16 * c;
+    return new V(A * s * c / den * k * 1.3, A * c / den * k, 0.15 * s);
+  };
+  const RAW = 4000, K = 1500;
+  const raw = [], cum = [0];
+  for (let i = 0; i <= RAW; i++) {
+    raw.push(curve(i / RAW * Math.PI * 2));
+    if (i) cum.push(cum[i - 1] + raw[i].distanceTo(raw[i - 1]));
+  }
+  const total = cum[RAW];
+  const E = [];
+  for (let i = 0, j = 0; i < K; i++) {
+    const target = i / K * total;
+    while (cum[j + 1] < target) j++;
+    E.push(raw[j].clone().lerp(raw[j + 1], (target - cum[j]) / (cum[j + 1] - cum[j])));
+  }
+  const at = (f, out) => {
+    f = ((f % 1) + 1) % 1;
+    const x = f * K, i = Math.floor(x) % K;
+    return out.copy(E[i]).lerp(E[(i + 1) % K], x - Math.floor(x));
+  };
+
+  /* textures: raised scales + dark saddle bands */
+  const scaleTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 512;
+    const g = c.getContext('2d'), cw = 64, ch = 51.2;
+    g.fillStyle = '#555'; g.fillRect(0, 0, 512, 512);
+    for (let r = -1; r <= 21; r++) for (let q = -1; q <= 9; q++) {
+      const x = (q + (r & 1) * 0.5) * cw, y = r * ch / 2;
+      const grad = g.createLinearGradient(x - cw / 2, y, x + cw / 2, y);
+      grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#3a3a3a');
+      g.beginPath(); g.moveTo(x - cw / 2, y); g.lineTo(x, y - ch / 2); g.lineTo(x + cw / 2, y); g.lineTo(x, y + ch / 2); g.closePath();
+      g.fillStyle = grad; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 2.5; g.stroke();
+    }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false;
+    return t;
+  })();
+  const bandTex = (() => {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    const g = c.getContext('2d');
+    g.fillStyle = '#f6f6f4'; g.fillRect(0, 0, 256, 256);
+    g.fillStyle = '#6b6c69';
+    for (const cy of [64, 192]) { g.beginPath(); g.moveTo(128 - 52, cy); g.lineTo(128, cy - 50); g.lineTo(128 + 52, cy); g.lineTo(128, cy + 50); g.closePath(); g.fill(); }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  })();
+  const bodyLen = LEN * total;
+  scaleTex.repeat.set(Math.round(bodyLen / (2 * Math.PI * BODY_R / 10) / 8), 1);
+  bandTex.repeat.set(11, 1);
+
+  const chrome = new THREE.MeshStandardMaterial({ color: 0xb9babd, metalness: 1, roughness: 0.1 });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xc4c5c8, metalness: 1, roughness: 0.14, map: bandTex, bumpMap: scaleTex, bumpScale: 0.55 });
+
+  /* body tube, rebuilt every frame so the snake can travel */
+  const N = 300, R = 18;
+  const pos = new Float32Array(N * (R + 1) * 3), nor = new Float32Array(N * (R + 1) * 3), uv = new Float32Array(N * (R + 1) * 2);
+  const idx = [];
+  for (let i = 0; i < N; i++) for (let j = 0; j <= R; j++) {
+    const n = i * (R + 1) + j;
+    uv[n * 2] = i / (N - 1); uv[n * 2 + 1] = j / R;
+    if (i < N - 1 && j < R) { const a = n, b = n + R + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  geo.setIndex(idx);
+  const body = new THREE.Mesh(geo, skin);
+  body.frustumCulled = false;
+
+  /* head */
+  const head = new THREE.Group();
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), new THREE.MeshStandardMaterial({ color: 0xc4c5c8, metalness: 1, roughness: 0.14, bumpMap: scaleTex.clone(), bumpScale: 0.4 }));
+  skull.material.bumpMap.repeat.set(5, 5); skull.material.bumpMap.needsUpdate = true;
+  skull.scale.set(0.42, 0.27, 0.165);
+  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.075, 0), new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.6, metalness: 0.2, roughness: 0.15, flatShading: true }));
+  gem.position.set(-0.05, 0, 0.155);
+  const eyeM = new THREE.MeshStandardMaterial({ color: 0x080808, metalness: 0.4, roughness: 0.2 });
+  const eyeG = new THREE.SphereGeometry(0.03, 16, 12);
+  const e1 = new THREE.Mesh(eyeG, eyeM), e2 = new THREE.Mesh(eyeG, eyeM);
+  e1.position.set(0.24, 0.155, 0.085); e2.position.set(0.24, -0.155, 0.085);
+  head.add(skull, gem, e1, e2);
+  head.matrixAutoUpdate = false;
+
+  /* speaker rings inside each loop */
+  const rings = new THREE.Group();
+  const lobe = (sign) => {
+    let best = null;
+    for (const p of E) if (Math.sign(p.y) === sign && (!best || Math.abs(p.x) > Math.abs(best.x))) best = p;
+    return { y: best.y, r: Math.abs(best.x) - BODY_R - 0.1 };
+  };
+  for (const l of [lobe(1), lobe(-1)]) {
+    for (const k of [1, 0.8, 0.62, 0.46, 0.2]) {
+      const m = new THREE.Mesh(new THREE.TorusGeometry(l.r * k, k === 0.2 ? 0.022 : 0.013, 12, 120), chrome);
+      m.position.y = l.y; rings.add(m);
     }
   }
-})();
+
+  const snake = new THREE.Group();
+  snake.add(body, head, rings);
+  snake.position.y = 0.33;
+  scene.add(snake);
+
+  /* fraction of the path where it crosses the middle on top */
+  const S0 = cum[RAW / 4] / total;
+
+  const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4();
+  const frameAt = (f) => {
+    at(f, P); at(f + 0.0015, Q);
+    T.subVectors(Q, P).normalize();
+    N1.crossVectors(T, Z).normalize();
+    N2.crossVectors(N1, T);
+  };
+  const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
+
+  function build(s) {
+    for (let i = 0; i < N; i++) {
+      const u = i / (N - 1);
+      frameAt(s - LEN * (1 - u));
+      let r = BODY_R * (0.16 + 0.84 * Math.pow(smooth(0, 0.2, u), 0.7));
+      r *= 1 - 0.14 * smooth(0.93, 0.985, u);
+      for (let j = 0; j <= R; j++) {
+        const a = j / R * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), n = (i * (R + 1) + j) * 3;
+        const nx = ca * N1.x + sa * N2.x, ny = ca * N1.y + sa * N2.y, nz = ca * N1.z + sa * N2.z;
+        nor[n] = nx; nor[n + 1] = ny; nor[n + 2] = nz;
+        pos[n] = P.x + nx * r; pos[n + 1] = P.y + ny * r; pos[n + 2] = P.z + nz * r;
+      }
+    }
+    geo.attributes.position.needsUpdate = true;
+    geo.attributes.normal.needsUpdate = true;
+    frameAt(s);
+    M.makeBasis(T, N1, N2).setPosition(P.x + T.x * 0.26, P.y + T.y * 0.26, P.z + T.z * 0.26 + 0.02);
+    head.matrix.copy(M);
+  }
+
+  let px = 0, py = 0, visible = true, running = false;
+  addEventListener('pointermove', (e) => { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; });
+
+  function size() {
+    const w = frame.clientWidth, h = frame.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+
+  function draw(now) {
+    const t = now / 1000;
+    const r = frame.getBoundingClientRect();
+    const prog = 1 - (r.top + r.height) / (innerHeight + r.height);
+    build(S0 + (reduce ? 0 : t * 0.022 + prog * 0.55));
+    snake.rotation.y = reduce ? -0.25 : (prog - 0.5) * 1.5 + px * 0.5 + Math.sin(t * 0.4) * 0.08;
+    snake.rotation.x = reduce ? 0 : -0.1 + py * 0.3;
+    gem.rotation.z = t * 0.8;
+    renderer.render(scene, camera);
+  }
+  function loop(now) {
+    if (!visible) { running = false; return; }
+    draw(now);
+    requestAnimationFrame(loop);
+  }
+
+  size();
+  draw(0);
+  frame.classList.add('is3d');
+  new ResizeObserver(() => { size(); if (reduce) draw(0); }).observe(frame);
+  if (!reduce) {
+    new IntersectionObserver((entries) => {
+      visible = entries[0].isIntersecting;
+      if (visible && !running) { running = true; requestAnimationFrame(loop); }
+    }, { rootMargin: '200px' }).observe(frame);
+  }
+} catch (err) {
+  console.warn('3D snake unavailable, showing the flat symbol instead.', err);
+}
 </script>
 </body>
 </html>
