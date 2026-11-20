@@ -125,7 +125,7 @@
   <div class="hero">
     <canvas class="scene" aria-hidden="true"></canvas>
     <div class="inner">
-      <button class="symbol" type="button" aria-label="Wake the snake: play an 808 beat and send out stronger sound waves">
+      <button class="symbol" type="button" aria-label="Play an 808 beat and send out stronger sound waves">
         <img src="assets/symbol-cream.svg" width="904" height="1450" alt="ekagra.808 symbol: a snake coiled into a figure eight around two sets of speaker rings, with an orange gem on its head">
       </button>
       <h1 aria-label="ekagra.808">Ekagra<i></i>808</h1>
@@ -248,351 +248,255 @@
 </script>
 <script type="module">
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const hero = document.querySelector('.hero');
 const canvas = hero.querySelector('canvas.scene');
 const stage = hero.querySelector('.symbol');
 
-try {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+(async () => {
+  try {
+    /* 1. Rasterise the official symbol and derive metal, relief and gem layers from it */
+    const img = new Image();
+    img.src = 'assets/symbol-cream.svg';
+    await img.decode();
+    const TW = 1024, TH = Math.round(TW * 1450 / 904);
+    const mk = () => { const c = document.createElement('canvas'); c.width = TW; c.height = TH; return c; };
+    const src = mk(), sctx = src.getContext('2d', { willReadFrequently: true });
+    sctx.drawImage(img, 0, 0, TW, TH);
+    const d = sctx.getImageData(0, 0, TW, TH).data;
 
-  const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.03).texture;
-  const FOV = 30, CAM_Z = 14, HV = 2 * CAM_Z * Math.tan(FOV / 2 * Math.PI / 180);
-  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
-  camera.position.set(0, 0, CAM_Z);
-
-  const V = THREE.Vector3;
-  const A = 1.9, BODY_R = 0.2, LEN = 0.9, SNAKE_H = 4.3;
-
-  /* figure-eight path, small loop on top, passing over itself at the middle */
-  const curve = (t) => {
-    const s = Math.sin(t), c = Math.cos(t), den = 1 + s * s, k = 1 - 0.16 * c;
-    return new V(A * s * c / den * k * 1.3, A * c / den * k, 0.16 * s);
-  };
-  const RAW = 4000, K = 1500;
-  const raw = [], cum = [0];
-  for (let i = 0; i <= RAW; i++) {
-    raw.push(curve(i / RAW * Math.PI * 2));
-    if (i) cum.push(cum[i - 1] + raw[i].distanceTo(raw[i - 1]));
-  }
-  const total = cum[RAW];
-  const E = [];
-  for (let i = 0, j = 0; i < K; i++) {
-    const target = i / K * total;
-    while (cum[j + 1] < target) j++;
-    E.push(raw[j].clone().lerp(raw[j + 1], (target - cum[j]) / (cum[j + 1] - cum[j])));
-  }
-  const at = (f, out) => {
-    f = ((f % 1) + 1) % 1;
-    const x = f * K, i = Math.floor(x) % K;
-    return out.copy(E[i]).lerp(E[(i + 1) % K], x - Math.floor(x));
-  };
-  const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
-
-  /* textures: raised scales, and a dark diamond pattern down the back */
-  const BANDS = 12;
-  const scaleTex = (() => {
-    const c = document.createElement('canvas'); c.width = c.height = 512;
-    const g = c.getContext('2d'), cw = 64, ch = 51.2;
-    g.fillStyle = '#555'; g.fillRect(0, 0, 512, 512);
-    for (let r = -1; r <= 21; r++) for (let q = -1; q <= 9; q++) {
-      const x = (q + (r & 1) * 0.5) * cw, y = r * ch / 2;
-      const grad = g.createLinearGradient(x - cw / 2, y, x + cw / 2, y);
-      grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#3a3a3a');
-      g.beginPath(); g.moveTo(x - cw / 2, y); g.lineTo(x, y - ch / 2); g.lineTo(x + cw / 2, y); g.lineTo(x, y + ch / 2); g.closePath();
-      g.fillStyle = grad; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 2.5; g.stroke();
+    const metalC = mk(), gemC = mk(), normC = mk();
+    const metalI = new ImageData(TW, TH), gemI = new ImageData(TW, TH), normI = new ImageData(TW, TH);
+    const NP = TW * TH, ink = new Float32Array(NP);
+    let minX = TW, maxX = 0, minY = TH, maxY = 0;
+    for (let p = 0, i = 0; p < NP; p++, i += 4) {
+      const a = d[i + 3] / 255;
+      const w = Math.min(1, Math.max(0, (d[i + 2] - 110) / 90));   /* cream ink = 1, orange gem and glow = 0 */
+      ink[p] = a * w;
+      if (ink[p] > 0.5) { const x = p % TW, y = (p / TW) | 0; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+      gemI.data[i] = d[i]; gemI.data[i + 1] = d[i + 1]; gemI.data[i + 2] = d[i + 2]; gemI.data[i + 3] = a * (1 - w) * 255;
     }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false;
-    return t;
-  })();
-  const bandTex = (() => {
-    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
-    const g = c.getContext('2d');
-    g.fillStyle = '#f2f2f0'; g.fillRect(0, 0, 256, 256);
-    const diamond = (cx, cy, w, h, fill) => { g.beginPath(); g.moveTo(cx - w, cy); g.lineTo(cx, cy - h); g.lineTo(cx + w, cy); g.lineTo(cx, cy + h); g.closePath(); g.fillStyle = fill; g.fill(); };
-    for (const cy of [64, 192]) {
-      diamond(128, cy, 96, 60, '#17181a');
-      diamond(128, cy, 66, 41, '#7d7e80');
-      diamond(128, cy, 40, 25, '#17181a');
-      diamond(0, cy, 34, 20, '#3a3b3d'); diamond(256, cy, 34, 20, '#3a3b3d');
-    }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-    return t;
-  })();
-  const bodyLen = LEN * total;
-  scaleTex.repeat.set(Math.round(bodyLen / (2 * Math.PI * BODY_R / 10) / 8), 1);
-  bandTex.repeat.set(BANDS, 1);
+    const blur = (srcA, r) => {
+      const tmp = new Float32Array(NP), out = new Float32Array(NP), n = 2 * r + 1;
+      for (let y = 0; y < TH; y++) { let s = 0; const o = y * TW;
+        for (let x = -r; x <= r; x++) s += srcA[o + Math.min(TW - 1, Math.max(0, x))];
+        for (let x = 0; x < TW; x++) { tmp[o + x] = s / n; s += srcA[o + Math.min(TW - 1, x + r + 1)] - srcA[o + Math.max(0, x - r)]; } }
+      for (let x = 0; x < TW; x++) { let s = 0;
+        for (let y = -r; y <= r; y++) s += tmp[Math.min(TH - 1, Math.max(0, y)) * TW + x];
+        for (let y = 0; y < TH; y++) { out[y * TW + x] = s / n; s += tmp[Math.min(TH - 1, y + r + 1) * TW + x] - tmp[Math.max(0, y - r) * TW + x]; } }
+      return out;
+    };
+    const ink1 = blur(ink, 1), ink2 = blur(blur(ink, 2), 2), inkHead = blur(blur(ink, 5), 5);
 
-  const chrome = new THREE.MeshStandardMaterial({ color: 0xb9babd, metalness: 1, roughness: 0.1 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xc9cacd, metalness: 1, roughness: 0.14, map: bandTex, bumpMap: scaleTex, bumpScale: 0.55 });
+    /* find the snake's two loops in the artwork: centre, outer edge and inner edge of each body ring */
+    const CX = (minX + maxX) / 2;
+    const at = (x, y) => (x < 0 || y < 0 || x >= TW || y >= TH) ? 0 : ink[(y | 0) * TW + (x | 0)];
+    const radial = (cy, dir, r) => { let s = 0, n = 0; for (let a = 25; a <= 155; a += 1.5) { const t = a * Math.PI / 180; s += at(CX + Math.cos(t) * r, cy + dir * Math.sin(t) * r); n++; } return s / n; };
+    const ring = (cy, dir, rOut) => {
+      let gap = 0, rIn = rOut * 0.6;
+      for (let r = rOut - 12; r > rOut * 0.4; r--) { if (radial(cy, dir, r) < 0.035) { if (++gap >= 3) { rIn = r + 3; break; } } else gap = 0; }
+      return { cy, rc: (rOut + rIn) / 2, hw: (rOut - rIn) / 2 + 1 };
+    };
+    const rBot = (maxX - minX) / 2;
+    let topMin = TW;
+    for (let y = minY; y < minY + (maxY - minY) * 0.3; y++) for (let x = 0; x < CX; x++) if (ink[y * TW + x] > 0.5) { if (x < topMin) topMin = x; break; }
+    const rTop = CX - topMin;
+    const loops = [ring(maxY - rBot, 1, rBot), ring(minY + rTop, -1, rTop)];
+    const gemY = 0.362 * TH;
 
-  /* body tube, rebuilt every frame so the snake can travel */
-  const N = 300, R = 18;
-  const pos = new Float32Array(N * (R + 1) * 3), nor = new Float32Array(N * (R + 1) * 3), uv = new Float32Array(N * (R + 1) * 2);
-  const idx = [];
-  for (let i = 0; i < N; i++) for (let j = 0; j <= R; j++) {
-    const n = i * (R + 1) + j;
-    uv[n * 2] = i / (N - 1); uv[n * 2 + 1] = j / R;
-    if (i < N - 1 && j < R) { const a = n, b = n + R + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
-  geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3).setUsage(THREE.DynamicDrawUsage));
-  geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-  geo.setIndex(idx);
-  const body = new THREE.Mesh(geo, skin);
-  body.frustumCulled = false;
-
-  /* head: wide viper skull with brow ridges, slit eyes, forked tongue, forehead gem */
-  const head = new THREE.Group();
-  const skullGeo = new THREE.SphereGeometry(1, 64, 44);
-  const HL = 0.62;
-  const skullW = (x) => 0.47 * (1 - 0.6 * smooth(-0.3, 1, x)) * (1 - 0.42 * smooth(-0.3, -1, x));
-  const skullTop = (x, y, z) => z * 0.22 * (1 - 0.5 * smooth(-0.3, 1, x))
-    + 0.09 * Math.exp(-((x - 0.1) ** 2 / 0.07 + (Math.abs(y) - 0.62) ** 2 / 0.05))
-    + 0.03 * Math.exp(-((x - 0.75) ** 2 / 0.02 + (Math.abs(y) - 0.45) ** 2 / 0.06));
-  /* height of the skull surface above a point given in head space */
-  const surfZ = (hx, hy) => { const x = hx / HL, y = hy / skullW(x); return skullTop(x, y, Math.sqrt(Math.max(0, 1 - x * x - y * y))); };
-  {
-    const p = skullGeo.attributes.position, col = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-      const zz = z > 0 ? skullTop(x, y, z) : z * 0.13 * (1 - 0.5 * smooth(-0.3, 1, x));
-      const hx = x * HL, hy = y * skullW(x);
-      p.setXYZ(i, hx, hy, zz);
-      let c = 1;
-      if (z > 0) {
-        const crown = Math.abs(hx + 0.12) / 0.3 + Math.abs(hy) / 0.17;
-        if (crown < 1) c = crown > 0.62 ? 0.12 : 0.5;
-        const stripe = Math.abs(Math.abs(hy) - (0.2 + 0.1 * (0.3 - hx))) ;
-        if (hx < 0.3 && hx > -0.5 && stripe < 0.028) c = Math.min(c, 0.14);
+    const h = new Float32Array(NP);
+    for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+      const p = y * TW + x, i = p * 4;
+      let tube = 0, edge = 0;
+      for (const L of loops) {
+        const dr = Math.abs(Math.hypot(x - CX, y - L.cy) - L.rc);
+        if (dr < L.hw) { tube = Math.max(tube, Math.sqrt(L.hw * L.hw - Math.min(dr, L.hw * 0.985) ** 2)); edge = Math.max(edge, Math.min(1, L.hw - dr)); }
       }
-      col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = c;
+      const win = Math.max(0, 1 - Math.abs(x - CX) / 130) > 0 && y > gemY - 80 && y < gemY + 210 ? 1 : 0;
+      const headSolid = win * Math.min(1, Math.max(0, (inkHead[p] - 0.1) / 0.07));
+      h[p] = tube + (tube > 0 ? 2.4 * ink1[p] : 3 * ink2[p]) + headSolid * (tube + 46 * inkHead[p]) * (tube > 0 ? 0.35 : 1);
+      const alpha = Math.max(edge, headSolid, ink[p]);
+      const shade = tube > 0 || headSolid > 0 ? 135 + 120 * Math.min(1, ink1[p] * 1.5) : 255;
+      metalI.data[i] = metalI.data[i + 1] = metalI.data[i + 2] = shade; metalI.data[i + 3] = alpha * 255;
     }
-    skullGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    skullGeo.computeVertexNormals();
-  }
-  const headTex = scaleTex.clone(); headTex.repeat.set(9, 7); headTex.needsUpdate = true;
-  const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xb4b5b9, metalness: 1, roughness: 0.2, bumpMap: headTex, bumpScale: 0.7, vertexColors: true }));
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff3c00, emissiveIntensity: 2.2, roughness: 0.2, metalness: 0 });
-  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  const ball = new THREE.SphereGeometry(1, 20, 14);
-  for (const side of [1, -1]) {
-    const ex = 0.27, ey = side * 0.2, ez = surfZ(ex, ey);
-    const eye = new THREE.Mesh(ball, eyeMat);
-    eye.position.set(ex, ey, ez - 0.006); eye.scale.set(0.1, 0.045, 0.04); eye.rotation.z = side * -0.55;
-    const pupil = new THREE.Mesh(ball, pupilMat);
-    pupil.position.set(ex, ey, ez + 0.03); pupil.scale.set(0.085, 0.009, 0.012); pupil.rotation.z = side * -0.55;
-    head.add(eye, pupil);
-  }
-  const gemMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.6, metalness: 0.2, roughness: 0.12, flatShading: true });
-  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.085, 0), gemMat);
-  gem.position.set(-0.12, 0, surfZ(-0.12, 0) + 0.03);
-  const tongue = new THREE.Group();
-  const tongueMat = new THREE.MeshStandardMaterial({ color: 0x7a1206, emissive: 0x4a0a02, roughness: 0.5, metalness: 0 });
-  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 0.3, 8), tongueMat);
-  stem.rotation.z = Math.PI / 2; stem.position.x = 0.15;
-  tongue.add(stem);
-  for (const side of [1, -1]) {
-    const prong = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.2, 8), tongueMat);
-    prong.rotation.z = -Math.PI / 2 + side * 0.4; prong.position.set(0.38, side * 0.035, 0);
-    tongue.add(prong);
-  }
-  tongue.position.set(HL - 0.06, 0, -0.01);
-  head.add(skull, gem, tongue);
-  head.matrixAutoUpdate = false;
-
-  /* diamonds set down the back, one in each dark diamond */
-  const jewelUs = [];
-  for (let k = 0; k < BANDS; k++) { const u = (k + 0.5) / BANDS; if (u > 0.1 && u < 0.97) jewelUs.push(u); }
-  const jewelMat = new THREE.MeshStandardMaterial({ color: 0xeaf6ff, emissive: 0x6f9bc4, emissiveIntensity: 0.55, metalness: 1, roughness: 0.02, flatShading: true, envMapIntensity: 2 });
-  const jewels = new THREE.InstancedMesh(new THREE.OctahedronGeometry(1, 0), jewelMat, jewelUs.length);
-  jewels.frustumCulled = false;
-
-  /* speaker rings inside each loop */
-  const rings = new THREE.Group();
-  const lobe = (sign) => {
-    let best = null;
-    for (const p of E) if (Math.sign(p.y) === sign && (!best || Math.abs(p.x) > Math.abs(best.x))) best = p;
-    return { y: best.y, r: Math.abs(best.x) - BODY_R - 0.1 };
-  };
-  const lobes = [lobe(1), lobe(-1)];
-  const speakers = lobes.map((l) => {
-    const g = new THREE.Group(); g.position.y = l.y;
-    for (const k of [1, 0.8, 0.62, 0.46, 0.2]) g.add(new THREE.Mesh(new THREE.TorusGeometry(l.r * k, k === 0.2 ? 0.024 : 0.013, 12, 120), chrome));
-    rings.add(g); return g;
-  });
-
-  const model = new THREE.Group();
-  model.add(body, head, jewels, rings);
-  model.position.y = 0.3;
-  const rig = new THREE.Group();
-  rig.add(model);
-  scene.add(rig);
-
-  /* emitted waveforms: wobbling rings that travel outward */
-  const SEG = 200, POOL = 16;
-  const waveGroup = new THREE.Group();
-  scene.add(waveGroup);
-  const waves = [];
-  for (let i = 0; i < POOL; i++) {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SEG * 3), 3).setUsage(THREE.DynamicDrawUsage));
-    const m = new THREE.LineBasicMaterial({ color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false });
-    const line = new THREE.LineLoop(g, m); line.visible = false; line.frustumCulled = false;
-    waveGroup.add(line);
-    waves.push({ line, born: -99, energy: 0, seed: i * 1.7 });
-  }
-  const cIdle = new THREE.Color(0xcdbb95), cHot = new THREE.Color(0xff6a2a);
-  let nextWave = 0, lastEmit = -99;
-  function emit(t, energy) {
-    const w = waves[nextWave]; nextWave = (nextWave + 1) % POOL;
-    w.born = t; w.energy = energy; w.line.visible = true;
-    w.line.material.color.copy(cIdle).lerp(cHot, Math.min(1, energy * 1.4));
-    lastEmit = t;
-  }
-  function drawWaves(t) {
-    for (const w of waves) {
-      if (!w.line.visible) continue;
-      const life = 5.5 - 2 * w.energy, k = (t - w.born) / life;
-      if (k >= 1) { w.line.visible = false; continue; }
-      const rad = reduce ? 2.2 + (w.seed % 5) * 0.9 : 0.5 + (k * (2 - k)) * 9.5;
-      const amp = (0.035 + 0.2 * w.energy) * (1 - k * 0.6);
-      const p = w.line.geometry.attributes.position;
-      for (let i = 0; i < SEG; i++) {
-        const a = i / SEG * Math.PI * 2;
-        const n = Math.sin(a * 9 + w.seed + t * 2.4) + 0.6 * Math.sin(a * 17 - w.seed * 2 - t * 3.6) + 0.45 * Math.sin(a * 31 + t * 5.2);
-        const r = rad + amp * n * (0.4 + 0.6 * Math.abs(Math.sin(a * 2 + w.seed)));
-        p.setXYZ(i, Math.cos(a) * r, Math.sin(a) * r * 1.12, 0);
-      }
-      p.needsUpdate = true;
-      w.line.material.opacity = Math.pow(1 - k, 1.6) * (0.3 + 0.7 * w.energy) * Math.min(1, k * 12);
+    for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+      const p = y * TW + x, i = p * 4;
+      const dx = (h[y * TW + Math.min(TW - 1, x + 1)] - h[y * TW + Math.max(0, x - 1)]) / 2;
+      const dy = (h[Math.min(TH - 1, y + 1) * TW + x] - h[Math.max(0, y - 1) * TW + x]) / 2;
+      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+      normI.data[i] = (nx * 0.5 + 0.5) * 255; normI.data[i + 1] = (ny * 0.5 + 0.5) * 255; normI.data[i + 2] = (nz * 0.5 + 0.5) * 255; normI.data[i + 3] = 255;
     }
-  }
+    metalC.getContext('2d').putImageData(metalI, 0, 0);
+    gemC.getContext('2d').putImageData(gemI, 0, 0);
+    normC.getContext('2d').putImageData(normI, 0, 0);
 
-  /* fraction of the path where it crosses the middle on top */
-  const S0 = cum[RAW / 4] / total;
+    /* 2. Renderer and a dark studio with bright strip lights, so the metal has something to reflect */
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
 
-  const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), SC = new V(), TF = new V(), UF = new V();
-  const lift = (u) => 0.34 * Math.pow(smooth(0.84, 1, u), 2);
-  const radius = (u) => BODY_R * (0.16 + 0.84 * Math.pow(smooth(0, 0.2, u), 0.7)) * (1 - 0.12 * smooth(0.93, 0.985, u));
-  const frameAt = (s, u) => {
-    const f = s - LEN * (1 - u);
-    at(f, P); at(f + 0.0015, Q);
-    P.z += lift(u); Q.z += lift(Math.min(1, u + 0.0017));
-    T.subVectors(Q, P).normalize();
-    N1.crossVectors(T, Z).normalize();
-    N2.crossVectors(N1, T);
-  };
+    const tex = (c, srgb) => { const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
+    const metalTex = tex(metalC, true), gemTex = tex(gemC, true), normTex = tex(normC, false);
 
-  function build(s, t, energy) {
-    for (let i = 0; i < N; i++) {
-      const u = i / (N - 1);
-      frameAt(s, u);
-      const r = radius(u);
-      for (let j = 0; j <= R; j++) {
-        const a = j / R * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), n = (i * (R + 1) + j) * 3;
-        const nx = ca * N1.x + sa * N2.x, ny = ca * N1.y + sa * N2.y, nz = ca * N1.z + sa * N2.z;
-        nor[n] = nx; nor[n + 1] = ny; nor[n + 2] = nz;
-        pos[n] = P.x + nx * r; pos[n + 1] = P.y + ny * r; pos[n + 2] = P.z + nz * r;
+    const studio = new THREE.Scene();
+    studio.background = new THREE.Color(0x030303);
+    const light = (w, hgt, x, y, z, r, g, b) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, hgt), new THREE.MeshBasicMaterial({ color: new THREE.Color(r, g, b), side: THREE.DoubleSide, toneMapped: false }));
+      m.position.set(x, y, z); m.lookAt(0, 0, 0); studio.add(m);
+    };
+    light(14, 1.6, 0, 7, 5, 14, 14, 14);        /* overhead strip */
+    light(1.6, 14, -8, 0, 4, 9, 9, 10);         /* left strip */
+    light(1.6, 14, 8, 1, 3, 6, 6, 6.5);         /* right strip */
+    light(9, 9, 0, 0, 10, 0.9, 0.9, 0.95);    /* soft front fill: flat faces read as mid silver */
+    light(3, 3, 6, -6, 5, 7, 2.6, 0.7);         /* warm kicker, echoing the gem */
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const scene = new THREE.Scene();
+    scene.environment = pmrem.fromScene(studio, 0.02).texture;
+
+    const FOV = 30, CAM_Z = 14, HV = 2 * CAM_Z * Math.tan(FOV / 2 * Math.PI / 180);
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
+    camera.position.set(0, 0, CAM_Z);
+
+    /* 3. The symbol: stacked planes give it thickness, the top one carries the relief */
+    const H = 4.3, W = H * 904 / 1450;
+    const plane = new THREE.PlaneGeometry(W, H);
+    const rig = new THREE.Group();
+    const LAYERS = 4;
+    for (let k = LAYERS - 1; k >= 0; k--) {
+      const top = k === 0;
+      const m = new THREE.MeshStandardMaterial({
+        map: metalTex, transparent: true, depthWrite: false, metalness: 1,
+        roughness: top ? 0.16 : 0.4, color: top ? 0xf0f1f4 : new THREE.Color().setScalar(0.45 - k * 0.08),
+        normalMap: normTex, normalScale: new THREE.Vector2(1, 1),
+      });
+      const mesh = new THREE.Mesh(plane, m);
+      mesh.position.z = -k * 0.022; mesh.renderOrder = LAYERS - k;
+      rig.add(mesh);
+    }
+    const gemMat = new THREE.MeshBasicMaterial({ map: gemTex, transparent: true, depthWrite: false, toneMapped: false });
+    const gemPlane = new THREE.Mesh(plane, gemMat);
+    gemPlane.position.z = 0.01; gemPlane.renderOrder = LAYERS + 1;
+    rig.add(gemPlane);
+
+    /* glow behind the gem */
+    const glowC = document.createElement('canvas'); glowC.width = glowC.height = 128;
+    { const g = glowC.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gr.addColorStop(0, 'rgba(255,120,50,1)'); gr.addColorStop(0.35, 'rgba(255,90,31,.45)'); gr.addColorStop(1, 'rgba(255,90,31,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128); }
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(glowC, true), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+    const GEM = new THREE.Vector3((0.508 - 0.5) * W, (0.5 - 0.362) * H, 0.03);
+    glow.position.copy(GEM); glow.renderOrder = LAYERS + 2;
+    rig.add(glow);
+    scene.add(rig);
+
+    /* 4. Waveforms sent out by the two speakers */
+    const SPEAKERS = [new THREE.Vector2(0, (0.5 - 0.69) * H), new THREE.Vector2(0, (0.5 - 0.19) * H)];
+    const SEG = 200, POOL = 18;
+    const waveGroup = new THREE.Group();
+    scene.add(waveGroup);
+    const waves = [];
+    for (let i = 0; i < POOL; i++) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SEG * 3), 3).setUsage(THREE.DynamicDrawUsage));
+      const line = new THREE.LineLoop(g, new THREE.LineBasicMaterial({ color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false }));
+      line.visible = false; line.frustumCulled = false;
+      waveGroup.add(line);
+      waves.push({ line, born: -99, energy: 0, seed: i * 1.7 });
+    }
+    const cIdle = new THREE.Color(0xcdbb95), cHot = new THREE.Color(0xff6a2a);
+    let nextWave = 0, lastEmit = -99, emitCount = 0;
+    function emit(t, energy, which) {
+      const w = waves[nextWave]; nextWave = (nextWave + 1) % POOL;
+      const c = SPEAKERS[which];
+      w.born = t; w.energy = energy; w.line.visible = true; w.line.position.set(c.x, c.y, 0);
+      w.line.material.color.copy(cIdle).lerp(cHot, Math.min(1, energy * 1.4));
+      lastEmit = t;
+    }
+    function drawWaves(t) {
+      for (const w of waves) {
+        if (!w.line.visible) continue;
+        const life = 5.5 - 2 * w.energy, k = (t - w.born) / life;
+        if (k >= 1) { w.line.visible = false; continue; }
+        const rad = reduce ? 1.6 + (w.seed % 5) * 0.8 : 0.35 + (k * (2 - k)) * 9.5;
+        const amp = (0.03 + 0.2 * w.energy) * (1 - k * 0.6);
+        const p = w.line.geometry.attributes.position;
+        for (let i = 0; i < SEG; i++) {
+          const a = i / SEG * Math.PI * 2;
+          const n = Math.sin(a * 9 + w.seed + t * 2.4) + 0.6 * Math.sin(a * 17 - w.seed * 2 - t * 3.6) + 0.45 * Math.sin(a * 31 + t * 5.2);
+          const r = rad + amp * n * (0.4 + 0.6 * Math.abs(Math.sin(a * 2 + w.seed)));
+          p.setXYZ(i, Math.cos(a) * r, Math.sin(a) * r, 0);
+        }
+        p.needsUpdate = true;
+        w.line.material.opacity = Math.pow(1 - k, 1.6) * (0.32 + 0.68 * w.energy) * Math.min(1, k * 12);
       }
     }
-    geo.attributes.position.needsUpdate = true;
-    geo.attributes.normal.needsUpdate = true;
 
-    jewelUs.forEach((u, k) => {
-      frameAt(s, u);
-      const r = radius(u), sz = r * (0.62 + 0.06 * Math.sin(t * 3 + k));
-      M.makeBasis(T, N1, N2);
-      SC.set(sz * 1.2, sz * 0.8, sz * 0.7);
-      M.scale(SC).setPosition(P.x + N2.x * r * 1.05, P.y + N2.y * r * 1.05, P.z + N2.z * r * 1.05);
-      jewels.setMatrixAt(k, M);
+    /* 5. Motion */
+    let px = 0, py = 0, visible = true, running = false, energy = 0, thump = -99, last = 0, flashUntil = 0;
+    addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; } });
+    stage.addEventListener('click', () => {
+      energy = 1; thump = performance.now() / 1000;
+      if (reduce) { for (let i = 0; i < 4; i++) emit(thump, 0.7, i % 2); flashUntil = thump + 4.3; if (!running) { running = true; requestAnimationFrame(loop); } }
     });
-    jewels.instanceMatrix.needsUpdate = true;
 
-    frameAt(s, 1);
-    const pitch = 0.32 + 0.18 * energy;
-    TF.copy(T).multiplyScalar(Math.cos(pitch)).addScaledVector(N2, Math.sin(pitch));
-    UF.copy(N2).multiplyScalar(Math.cos(pitch)).addScaledVector(T, -Math.sin(pitch));
-    M.makeBasis(TF, N1, UF).setPosition(P.x + TF.x * 0.42, P.y + TF.y * 0.42, P.z + TF.z * 0.42 + 0.02);
-    head.matrix.copy(M);
-  }
-
-  let px = 0, py = 0, visible = true, running = false, energy = 0, thump = -99, last = 0, travel = 0, flashUntil = 0;
-  addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; } });
-  stage.addEventListener('click', () => {
-    energy = 1; thump = performance.now() / 1000;
-    if (reduce) { for (let i = 0; i < 4; i++) emit(thump, 0.7); flashUntil = thump + 4.3; if (!running) { running = true; requestAnimationFrame(loop); } }
-  });
-
-  function size() {
-    const w = hero.clientWidth, h = hero.clientHeight;
-    if (!w || !h) return;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
-  }
-
-  function draw(now) {
-    const t = now / 1000, dt = Math.min(0.05, t - last); last = t;
-    energy *= Math.exp(-dt * 0.75);
-    if (energy < 0.004) energy = 0;
-
-    /* follow the placeholder in the page so layout and scroll motion carry over */
-    const hr = hero.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-    const scale = (sr.height / hr.height) * HV / SNAKE_H;
-    rig.scale.setScalar(scale * (1 + 0.05 * energy));
-    rig.position.set(((sr.left + sr.width / 2 - hr.left) / hr.width - 0.5) * HV * camera.aspect, (0.5 - (sr.top + sr.height / 2 - hr.top) / hr.height) * HV, 0);
-    waveGroup.position.copy(rig.position); waveGroup.position.z = -0.6;
-    waveGroup.scale.setScalar(scale);
-
-    if (!reduce) {
-      travel += dt * (0.02 + 0.3 * energy);
-      const intro = 1 - Math.pow(1 - Math.min(1, t / 2.4), 4);
-      rig.rotation.y = (1 - intro) * -1.3 + px * 0.55 + Math.sin(t * 0.4) * 0.07;
-      rig.rotation.x = -0.06 + py * 0.32;
-      const every = 1.7 - 1.45 * Math.min(1, energy * 1.3);
-      if (t - lastEmit > every) emit(t, energy);
-    } else {
-      rig.rotation.set(0, -0.12, 0);
+    function size() {
+      const w = hero.clientWidth, hh = hero.clientHeight;
+      if (!w || !hh) return;
+      renderer.setSize(w, hh, false);
+      camera.aspect = w / hh; camera.updateProjectionMatrix();
     }
-    const beat = Math.exp(-(t - thump) * 6);
-    speakers.forEach((g, i) => g.scale.setScalar(1 + beat * 0.1 + energy * 0.03 * Math.sin(t * 34 + i)));
-    eyeMat.emissiveIntensity = 1.6 + 4 * energy;
-    gemMat.emissiveIntensity = 1.6 + 3 * energy;
-    gem.rotation.z = t * 0.8;
-    const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
-    tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
 
-    build(S0 + travel, t, energy);
-    drawWaves(t);
-    renderer.render(scene, camera);
-  }
-  function loop(now) {
-    if (!visible || (reduce && now / 1000 > flashUntil)) { running = false; return; }
-    draw(now);
-    requestAnimationFrame(loop);
-  }
+    function draw(now) {
+      const t = now / 1000, dt = Math.min(0.05, t - last); last = t;
+      energy *= Math.exp(-dt * 0.75);
+      if (energy < 0.004) energy = 0;
 
-  size();
-  draw(0);
-  hero.classList.add('is3d');
-  new ResizeObserver(() => { size(); if (reduce) draw(performance.now()); }).observe(hero);
-  if (!reduce) {
-    new IntersectionObserver((entries) => {
-      visible = entries[0].isIntersecting;
-      if (visible && !running) { running = true; requestAnimationFrame(loop); }
-    }).observe(hero);
+      /* follow the placeholder in the page so layout and scroll motion carry over */
+      const hr = hero.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+      const scale = (sr.height / hr.height) * HV / H;
+      const beat = Math.exp(-Math.max(0, t - thump) * 6);
+      rig.scale.setScalar(scale * (1 + 0.05 * beat + 0.012 * energy * Math.sin(t * 34)));
+      rig.position.set(((sr.left + sr.width / 2 - hr.left) / hr.width - 0.5) * HV * camera.aspect, (0.5 - (sr.top + sr.height / 2 - hr.top) / hr.height) * HV, 0);
+      waveGroup.position.copy(rig.position); waveGroup.position.z = -0.5;
+      waveGroup.scale.setScalar(scale);
+
+      if (!reduce) {
+        const intro = 1 - Math.pow(1 - Math.min(1, t / 2.6), 4);
+        rig.rotation.y = (1 - intro) * -1.4 + px * 0.7 + Math.sin(t * 0.5) * 0.24;
+        rig.rotation.x = py * 0.4 + Math.sin(t * 0.37) * 0.07;
+        const every = 1.7 - 1.45 * Math.min(1, energy * 1.3);
+        if (t - lastEmit > every) emit(t, energy, energy > 0.15 ? emitCount++ % 2 : 0);
+      } else {
+        rig.rotation.set(0.05, -0.2, 0);
+      }
+      glow.scale.setScalar(0.3 + 0.9 * energy + 0.03 * Math.sin(t * 2));
+      gemMat.color.setScalar(1 + 1.5 * energy);
+
+      drawWaves(t);
+      renderer.render(scene, camera);
+    }
+    function loop(now) {
+      if (!visible || (reduce && now / 1000 > flashUntil)) { running = false; return; }
+      draw(now);
+      requestAnimationFrame(loop);
+    }
+
+    size();
+    draw(performance.now());
+    hero.classList.add('is3d');
+    new ResizeObserver(() => { size(); if (reduce) draw(performance.now()); }).observe(hero);
+    if (!reduce) {
+      new IntersectionObserver((entries) => {
+        visible = entries[0].isIntersecting;
+        if (visible && !running) { running = true; requestAnimationFrame(loop); }
+      }).observe(hero);
+    }
+  } catch (err) {
+    console.warn('3D symbol unavailable, showing the flat symbol instead.', err);
   }
-} catch (err) {
-  console.warn('3D snake unavailable, showing the flat symbol instead.', err);
-}
+})();
 </script>
 </body>
 </html>
