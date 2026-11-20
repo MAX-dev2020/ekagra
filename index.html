@@ -40,18 +40,22 @@
   .brand img { height: 3rem; width: auto; }
 
   /* 1 — logo */
-  .hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; overflow: hidden; padding: 6rem 0 3rem; }
+  .hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; overflow: hidden; padding: 5.5rem 0 2rem; }
   .hero::before { content: ""; position: absolute; left: 50%; top: 42%; width: 90vmax; height: 90vmax; transform: translate(-50%, -50%); background: radial-gradient(closest-side, #1b1a17 0%, #0c0c0b 45%, transparent 70%); }
   .hero .inner { position: relative; z-index: 2; display: grid; justify-items: center; }
-  canvas.scene { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; display: none; }
+  canvas.scene { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; height: 100lvh; z-index: 1; pointer-events: none; display: none; }
   .is3d canvas.scene { display: block; }
   .symbol { position: relative; display: block; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 45%; -webkit-tap-highlight-color: transparent; }
-  .symbol img { height: clamp(19rem, 58vh, 36rem); width: auto; }
+  .symbol img { height: clamp(16rem, 52vh, 34rem); height: clamp(16rem, 52svh, 34rem); width: auto; }
   .is3d .symbol img { opacity: 0; }
-  h1 { font-family: var(--wide); font-weight: 400; font-size: clamp(1.3rem, 5vw, 2.6rem); letter-spacing: .34em; margin: 2.4rem -.34em 0 0; text-transform: uppercase; }
+  h1 { font-family: var(--wide); font-weight: 400; font-size: clamp(1.3rem, 5vw, 2.6rem); letter-spacing: .34em; margin: 2rem -.34em 0 0; text-transform: uppercase; }
   h1 i { display: inline-block; width: .4em; height: .4em; border-radius: 50%; background: var(--gem); margin: 0 .3em 0 .04em; box-shadow: 0 0 18px rgba(255,106,42,.7); }
-  .tag { margin-top: 1.1rem; }
-  .cue { margin-top: 3rem; display: grid; justify-items: center; gap: .7rem; }
+  .tag { margin-top: 1.1rem; line-height: 2.1; }
+  .tag span { white-space: nowrap; }
+  .tag i { font-style: normal; margin: 0 .6em; }
+  .eyebrow { display: flex; align-items: center; gap: 1rem; }
+  .eyebrow::before { content: ""; width: 2.5rem; height: 1px; background: var(--champ); opacity: .6; }
+  .cue { margin-top: 2.2rem; display: grid; justify-items: center; gap: .7rem; }
   .cue .label { color: var(--muted); }
   .cue::after { content: ""; width: 1px; height: 2.6rem; background: linear-gradient(var(--champ), transparent); }
 
@@ -61,7 +65,7 @@
   .big { font-family: var(--serif); font-weight: 300; font-size: clamp(2.4rem, 5.6vw, 4.6rem); line-height: 1.05; margin: 1.4rem 0 1.6rem; letter-spacing: -.01em; }
   .big em { font-style: italic; color: var(--champ); }
   .about p.copy { color: var(--muted); max-width: 30rem; margin: 0; }
-  .frame { position: relative; overflow: hidden; aspect-ratio: 1 / 1.12; border-radius: 2px; background: radial-gradient(120% 90% at 30% 20%, #cfc9c2, #a39c95); }
+  .frame { position: relative; overflow: hidden; aspect-ratio: 1 / 1.12; width: 100%; max-width: 30rem; justify-self: end; border-radius: 2px; background: radial-gradient(120% 90% at 30% 20%, #cfc9c2, #a39c95); }
   .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; filter: drop-shadow(0 26px 22px rgba(40,34,28,.5)); }
   .frame.is3d canvas { display: block; }
   .frame.is3d .flat { display: none; }
@@ -91,18 +95,25 @@
   .plat { overflow: hidden; }
   .plat h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.05; margin: 1.2rem 0 3rem; }
   .rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  .row { display: grid; grid-template-columns: 3rem 1fr auto; align-items: baseline; gap: 1rem; padding: 2rem 0; border-bottom: 1px solid var(--line); transition: padding .4s cubic-bezier(.2,.7,.2,1), color .3s; }
+  .row { display: grid; grid-template-columns: 3rem 1fr auto; align-items: center; gap: 1rem; padding: 1.8rem 0; border-bottom: 1px solid var(--line); transition: padding .4s cubic-bezier(.2,.7,.2,1), color .3s; }
   a.row:hover { padding-inline: 1rem; color: var(--champ); }
   .row small { font-family: var(--wide); font-size: .6rem; letter-spacing: .3em; color: var(--muted); }
   .row strong { font-family: var(--serif); font-weight: 300; font-size: clamp(2rem, 6vw, 4.2rem); line-height: 1; }
   .row span { font-family: var(--wide); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
 
-  footer { position: relative; z-index: 2; padding: 3rem 0; text-align: center; }
+  footer { position: relative; z-index: 2; padding: 3.5rem 0 4rem; text-align: center; border-top: 1px solid var(--line); }
+  footer img { height: 3.4rem; width: auto; margin: 0 auto 1.4rem; opacity: .9; }
   footer .label { color: var(--muted); line-height: 2.2; }
 
   @media (max-width: 46rem) {
     header nav { gap: 1.2rem; }
     .brand span { display: none; }
+    .tag span { display: block; }
+    .tag i { display: none; }
+    .frame { justify-self: center; max-width: 24rem; }
+    .redcover { max-width: 24rem; }
+    section { padding: 4.5rem 0; }
+    .big { margin: 1.2rem 0 1.2rem; }
     .about .wrap, .song .wrap { grid-template-columns: 1fr; }
     .row { grid-template-columns: 2.2rem 1fr auto; }
   }
@@ -129,7 +140,7 @@
         <img src="assets/symbol-cream.svg" width="904" height="1450" alt="ekagra.808 symbol: a snake coiled into a figure eight around two sets of speaker rings, with an orange gem on its head">
       </button>
       <h1 aria-label="ekagra.808">Ekagra<i></i>808</h1>
-      <p class="label tag">Drops of clarity · Beat of alignment</p>
+      <p class="label tag"><span>Drops of clarity</span><i aria-hidden="true">·</i><span>Beat of alignment</span></p>
       <div class="cue"><p class="label">Tap the symbol · Scroll</p></div>
     </div>
   </div>
@@ -137,7 +148,7 @@
   <section class="about" id="about">
     <div class="wrap">
       <div data-speed="0.25">
-        <p class="label">About us</p>
+        <p class="label eyebrow">About us</p>
         <p class="big">Music for <em>spirituality.</em></p>
         <p class="copy">Chants and mantras with beats, meditative instrumentals and devotional songs.</p>
       </div>
@@ -154,7 +165,7 @@
         <div class="redcover"><img src="assets/symbol-dark.svg" width="904" height="1450" loading="lazy" alt="ekagra.808 symbol printed in black on red"></div>
       </div>
       <div data-speed="-0.15">
-        <p class="label">Latest song</p>
+        <p class="label eyebrow">Latest song</p>
         <h2>Jagay Chalo</h2>
         <div class="bars" aria-hidden="true"></div>
         <a class="play" href="#listen"><b></b>Listen now</a>
@@ -164,7 +175,7 @@
 
   <section class="plat" id="listen">
     <div class="wrap">
-      <p class="label">Listen everywhere</p>
+      <p class="label eyebrow">Listen everywhere</p>
       <h2>Find ekagra.808</h2>
       <ul class="rows">
         <li><div class="row" data-platform="youtube"><small>01</small><strong>YouTube</strong><span>Link soon</span></div></li>
@@ -175,7 +186,7 @@
   </section>
 </main>
 
-<footer><p class="label">Ekagra 808 · Drops of clarity · Beat of alignment</p></footer>
+<footer><img src="assets/symbol-cream.svg" width="904" height="1450" alt="" loading="lazy"><p class="label">Ekagra 808 · Drops of clarity · Beat of alignment</p></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -214,7 +225,7 @@
 
   /* smooth scroll */
   if (window.Lenis) {
-    var lenis = new Lenis({ duration: 1.25 });
+    var lenis = window.__lenis = new Lenis({ duration: 1.2, syncTouch: true, syncTouchLerp: 0.085, touchMultiplier: 1 });
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
     gsap.ticker.lagSmoothing(0);
@@ -249,6 +260,7 @@
 import * as THREE from 'three';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarse = matchMedia('(pointer: coarse)').matches;
 const canvas = document.querySelector('canvas.scene');
 const stage = document.querySelector('.symbol');
 const V = THREE.Vector3;
@@ -317,7 +329,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
 
     /* ---------- 2. Renderer, studio reflections ---------- */
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, coarse ? 1.5 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     const tex = (c, srgb) => { const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
@@ -356,10 +368,15 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     });
 
     /* ---------- 4. Sound waves: clean rings pushed out by each speaker ---------- */
-    const ringGeo = new THREE.RingGeometry(0.988, 1, 160);
+    const softC = document.createElement('canvas'); softC.width = softC.height = 512;
+    { const g = softC.getContext('2d'), gr = g.createRadialGradient(256, 256, 0, 256, 256, 256);
+      gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.78, 'rgba(255,255,255,0)'); gr.addColorStop(0.93, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 512, 512); }
+    const softTex = tex(softC, true);
+    const waveGeo = new THREE.PlaneGeometry(2, 2);
     const waves = [];
-    for (let i = 0; i < 24; i++) {
-      const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
+    for (let i = 0; i < 16; i++) {
+      const m = new THREE.Mesh(waveGeo, new THREE.MeshBasicMaterial({ map: softTex, color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
       m.visible = false; m.renderOrder = 1; world.add(m);
       waves.push({ m, born: -99, hot: 0, spk: 0 });
     }
@@ -371,20 +388,23 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       w.born = t; w.hot = hot; w.spk = which; w.m.visible = true;
       w.m.position.set(0, -s.L.cy, -45);
       w.m.material.color.copy(cIdle).lerp(cHot, hot);
-      s.pump = t; s.pumpAmt = 0.012 + 0.05 * hot;
+      s.pump = t; s.pumpAmt = 0.005 + 0.02 * hot;
     }
     function drawWaves(t) {
       for (const w of waves) {
         if (!w.m.visible) continue;
-        const life = 2.6, k = (t - w.born) / life;
+        const k = (t - w.born) / 4;
         if (k >= 1) { w.m.visible = false; continue; }
         if (k < 0) { w.m.material.opacity = 0; continue; }
-        const L = speakers[w.spk].L, r0 = L.rIn * 0.2, r1 = (L.rc + L.hw) * 2.1;
-        const e = reduce ? 0.45 : 1 - Math.pow(1 - k, 2.2);
+        const L = speakers[w.spk].L, r0 = L.rIn * 0.55, r1 = (L.rc + L.hw) * 1.85;
+        const e = reduce ? 0.5 : 1 - Math.pow(1 - k, 2);
         w.m.scale.setScalar(r0 + (r1 - r0) * e);
-        w.m.material.opacity = Math.pow(1 - k, 1.5) * Math.min(1, k * 10) * (0.2 + 0.75 * w.hot);
+        w.m.material.opacity = smooth(0, 0.22, k) * (1 - smooth(0.3, 1, k)) * (0.08 + 0.12 * w.hot);
       }
-      for (const s of speakers) s.mesh.scale.setScalar(1 + (s.pumpAmt || 0) * Math.exp(-Math.max(0, t - s.pump) * 9));
+      for (const s of speakers) {
+        const q = Math.min(1, Math.max(0, (t - s.pump) / 0.55));
+        s.mesh.scale.setScalar(1 + (s.pumpAmt || 0) * Math.sin(Math.PI * q));
+      }
     }
 
     /* ---------- 5. The snake's path: a crossed loop round both speakers, then out and down the page ---------- */
@@ -420,11 +440,12 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     function buildPath() {
       const sr = stage.getBoundingClientRect();
       symTop = sr.top + scrollY; symCx = sr.left + sr.width / 2; artPerPx = TH / sr.height;
-      const vw = innerWidth, vh = innerHeight, pageH = document.documentElement.scrollHeight;
+      const vw = innerWidth, vh = VH(), pageH = document.documentElement.scrollHeight;
       const pts = belt.concat(belt.slice(0, exitIndex));
       /* leave the bottom speaker at its 3 o'clock point, heading straight down, then weave down the page */
       const ex = belt[exitIndex], pageX0 = symCx + (ex[0] - CX) / artPerPx, pageY0 = symTop + ex[1] / artPerPx;
-      const amp = Math.min(vw * 0.36, 520), lam = Math.max(700, vh * 1.15), mid = vw / 2;
+      const narrow = vw < 740;
+      const amp = narrow ? vw * 0.1 : Math.min(vw * 0.36, 520), lam = Math.max(700, vh * 1.15), mid = narrow ? vw * 0.9 : vw / 2;
       for (let Y = pageY0; Y < pageH + vh; Y += 2) {
         const e = smooth(0, 520, Y - pageY0);
         const X = pageX0 + (mid - pageX0) * e + amp * e * Math.sin((Y - pageY0) / lam * Math.PI * 2);
@@ -488,7 +509,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const BUMP = TUBE * 0.16;
     const skin = new THREE.MeshStandardMaterial({ color: 0xf2f3f5, metalness: 1, roughness: 0.13, map: latticeTex, bumpMap: scaleTex, bumpScale: BUMP });
 
-    const N = 420, R = 18;
+    const N = coarse ? 300 : 420, R = coarse ? 14 : 18;
     const pos = new Float32Array(N * (R + 1) * 3), nor = new Float32Array(N * (R + 1) * 3), uv = new Float32Array(N * (R + 1) * 2);
     const idx = [];
     for (let i = 0; i < N; i++) for (let j = 0; j <= R; j++) {
@@ -592,30 +613,32 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     }
 
     /* ---------- 8. Layout, scroll and animation ---------- */
+    const VH = () => canvas.clientHeight || innerHeight;   /* canvas is 100lvh: steady while a phone's address bar slides */
     function size() {
-      renderer.setSize(innerWidth, innerHeight, false);
-      camera.aspect = innerWidth / innerHeight;
+      renderer.setSize(innerWidth, VH(), false);
+      camera.aspect = innerWidth / VH();
       buildPath();
       scaleTex.repeat.set(Math.round(bodyLen / (2 * Math.PI * TUBE / 6) / 4), 1);
       latticeTex.repeat.copy(scaleTex.repeat);
-      camera.position.z = innerHeight * artPerPx / (2 * TAN);
+      camera.position.z = VH() * artPerPx / (2 * TAN);
       camera.near = camera.position.z * 0.05; camera.far = camera.position.z * 4;
       camera.updateProjectionMatrix();
     }
 
+    let builtS = -1, builtE = -1, builtL = -1;
     let px = 0, py = 0, energy = 0, last = 0, cur = 0, burstUntil = -99, nextPulse = 0, pulseCount = 0, running = false;
     addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; } });
     stage.addEventListener('click', () => {
       const t = performance.now() / 1000;
       energy = 1; burstUntil = t + 2.4; nextPulse = t;
-      if (!running) { running = true; requestAnimationFrame(loop); }
+      if (reduce && !running) { running = true; requestAnimationFrame(loop); }
     });
 
     function draw(now) {
       const t = now / 1000, dt = Math.min(0.05, t - last); last = t;
       energy *= Math.exp(-dt * 0.8);
       if (energy < 0.004) energy = 0;
-      const sy = scrollY, vh = innerHeight, vw = innerWidth;
+      const sy = window.__lenis ? window.__lenis.scroll : scrollY, vh = VH(), vw = innerWidth;
 
       canvas.style.opacity = (1 - 0.56 * smooth(0.3, 0.95, sy / vh)).toFixed(3);   /* dim once it travels behind the text */
       camera.position.x = (vw / 2 - symCx) * artPerPx;
@@ -628,7 +651,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         const pageY = sy + Math.min(restY + 0.3 * sy, vh * 0.7);
         target = advanceFor((pageY - symTop) * artPerPx);
       }
-      cur += (target - cur) * Math.min(1, dt * 5);
+      cur += (target - cur) * (1 - Math.exp(-dt * 3.2));
       if (Math.abs(target - cur) < 0.5) cur = target;
       liftAmt = 1 - smooth(0, 500, cur);
 
@@ -641,8 +664,8 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       if (t >= nextPulse && (!reduce || bursting)) {
         const hot = bursting ? Math.max(0.35, energy) : 0;
         pulse(t, 0, hot);
-        pulse(t + (bursting ? 0.06 : 0.22), 1, hot);
-        nextPulse = t + (bursting ? 0.26 : 1.5);
+        pulse(t + (bursting ? 0.14 : 0.35), 1, hot);
+        nextPulse = t + (bursting ? 0.5 : 2.6);
         pulseCount++;
       }
 
@@ -653,26 +676,34 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
       tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
 
-      build(beltLen + cur, energy);
+      if (cur !== builtS || energy !== builtE || liftAmt !== builtL) { build(beltLen + cur, energy); builtS = cur; builtE = energy; builtL = liftAmt; }
       drawWaves(t);
       renderer.render(scene, camera);
     }
+    const useTicker = !reduce && window.gsap;
     function loop(now) {
       if (document.hidden) { running = false; return; }
       draw(now);
-      if (reduce && performance.now() / 1000 > burstUntil + 3) { running = false; return; }
+      if (reduce && performance.now() / 1000 > burstUntil + 4.5) { running = false; return; }
       requestAnimationFrame(loop);
     }
-    const kick = () => { if (!running) { running = true; requestAnimationFrame(loop); } };
+    const kick = () => { if (!useTicker && !running) { running = true; requestAnimationFrame(loop); } };
 
     size();
+    builtS = -1;
     draw(performance.now());
     document.documentElement.classList.add('is3d');
-    let resizeTimer;
-    addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { size(); if (reduce) draw(performance.now()); }, 120); });
-    addEventListener('load', () => { size(); });
+    let resizeTimer, lastW = innerWidth;
+    addEventListener('resize', () => {
+      if (coarse && innerWidth === lastW) return;            /* ignore address-bar height changes on phones */
+      lastW = innerWidth;
+      clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { size(); builtS = -1; if (reduce) draw(performance.now()); }, 120);
+    });
+    addEventListener('load', () => { size(); builtS = -1; });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { size(); builtS = -1; });
     document.addEventListener('visibilitychange', () => { if (!document.hidden && !reduce) kick(); });
     if (reduce) addEventListener('scroll', () => draw(performance.now()), { passive: true });
+    else if (useTicker) window.gsap.ticker.add(() => { if (!document.hidden) draw(performance.now()); });
     else kick();
   } catch (err) {
     console.warn('3D snake unavailable, showing the flat symbol instead.', err);
