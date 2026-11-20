@@ -36,20 +36,18 @@
   header nav { display: flex; gap: 2.2rem; }
   header a { font-family: var(--wide); font-size: .6rem; letter-spacing: .34em; text-transform: uppercase; color: var(--muted); padding: .6rem 0; }
   header a:hover { color: var(--text); }
+  .brand { display: inline-flex; align-items: center; gap: 1rem; color: var(--text); }
+  .brand img { height: 3rem; width: auto; }
 
   /* 1 — logo */
   .hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; overflow: hidden; padding: 6rem 0 3rem; }
   .hero::before { content: ""; position: absolute; left: 50%; top: 42%; width: 90vmax; height: 90vmax; transform: translate(-50%, -50%); background: radial-gradient(closest-side, #1b1a17 0%, #0c0c0b 45%, transparent 70%); }
   .hero .inner { position: relative; display: grid; justify-items: center; }
-  .stage { perspective: 900px; }
-  .symbol { position: relative; display: block; border: 0; padding: 0; background: none; cursor: pointer; transform-style: preserve-3d; -webkit-tap-highlight-color: transparent; }
-  .symbol img { height: clamp(18rem, 54vh, 32rem); width: auto; transform: translateZ(50px); filter: drop-shadow(0 30px 40px rgba(0,0,0,.6)); }
-  .symbol.thump img { animation: thump .5s ease-out; }
-  @keyframes thump { 30% { transform: translateZ(50px) scale(1.04); } }
-  .waves { position: absolute; inset: 0; pointer-events: none; transform: translateZ(-60px); transform-style: preserve-3d; }
-  .wave { position: absolute; left: 50.8%; top: 36.2%; border: 1px solid var(--gem); border-radius: 50%; transform: translate(-50%, -50%); animation: wave 2.2s cubic-bezier(.15,.6,.3,1) forwards; }
-  .wave.still { animation: none; border-color: rgba(205,187,149,.16); }
-  @keyframes wave { from { width: 1rem; height: 1rem; opacity: 1; } to { width: 90rem; height: 90rem; opacity: 0; } }
+  canvas.scene { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
+  .hero.is3d canvas.scene { display: block; }
+  .symbol { position: relative; display: block; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 45%; -webkit-tap-highlight-color: transparent; }
+  .symbol img { height: clamp(19rem, 58vh, 36rem); width: auto; }
+  .hero.is3d .symbol img { opacity: 0; }
   h1 { font-family: var(--wide); font-weight: 400; font-size: clamp(1.3rem, 5vw, 2.6rem); letter-spacing: .34em; margin: 2.4rem -.34em 0 0; text-transform: uppercase; }
   h1 i { display: inline-block; width: .4em; height: .4em; border-radius: 50%; background: var(--gem); margin: 0 .3em 0 .04em; box-shadow: 0 0 18px rgba(255,106,42,.7); }
   .tag { margin-top: 1.1rem; }
@@ -104,13 +102,12 @@
 
   @media (max-width: 46rem) {
     header nav { gap: 1.2rem; }
-    header .wrap > a { display: none; }
-    header .wrap { justify-content: center; }
+    .brand span { display: none; }
     .about .wrap, .song .wrap { grid-template-columns: 1fr; }
     .row { grid-template-columns: 2.2rem 1fr auto; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .wave:not(.still), .symbol.thump img, .bars span { animation: none; }
+    .bars span { animation: none; }
     .row, .play b { transition: none; }
   }
 </style>
@@ -119,24 +116,18 @@
 <a class="skip" href="#listen">Skip to listen</a>
 <header>
   <div class="wrap">
-    <a href="#top">Ekagra 808</a>
+    <a class="brand" href="#top" aria-label="ekagra.808 home"><img src="assets/symbol-cream.svg" width="904" height="1450" alt=""><span>Ekagra 808</span></a>
     <nav aria-label="Sections"><a href="#about">About</a><a href="#song">Music</a><a href="#listen">Listen</a></nav>
   </div>
 </header>
 
 <main id="top">
   <div class="hero">
+    <canvas class="scene" aria-hidden="true"></canvas>
     <div class="inner">
-      <div class="stage">
-        <button class="symbol" type="button" aria-label="Play an 808 beat and send out sound waves">
-          <span class="waves" aria-hidden="true">
-            <span class="wave still" style="width:26rem;height:26rem"></span>
-            <span class="wave still" style="width:42rem;height:42rem"></span>
-            <span class="wave still" style="width:60rem;height:60rem"></span>
-          </span>
-          <img src="assets/symbol-cream.svg" width="904" height="1450" alt="ekagra.808 symbol: a snake coiled into a figure eight around two sets of speaker rings, with an orange gem on its head">
-        </button>
-      </div>
+      <button class="symbol" type="button" aria-label="Wake the snake: play an 808 beat and send out stronger sound waves">
+        <img src="assets/symbol-cream.svg" width="904" height="1450" alt="ekagra.808 symbol: a snake coiled into a figure eight around two sets of speaker rings, with an orange gem on its head">
+      </button>
       <h1 aria-label="ekagra.808">Ekagra<i></i>808</h1>
       <p class="label tag">Drops of clarity · Beat of alignment</p>
       <div class="cue"><p class="label">Tap the symbol · Scroll</p></div>
@@ -152,7 +143,6 @@
       </div>
       <div class="frame" data-speed="-0.35">
         <div class="flat"><div class="metal" role="img" aria-label="ekagra.808 symbol in silver"></div><span class="gemdot"></span></div>
-        <canvas aria-label="A silver snake coiled into a figure eight, slowly moving" role="img"></canvas>
       </div>
     </div>
   </section>
@@ -207,7 +197,7 @@
   }
 
   /* tap the symbol: 808 + sound waves */
-  var symbol = document.querySelector('.symbol'), waves = document.querySelector('.waves'), ctx;
+  var symbol = document.querySelector('.symbol'), ctx;
   symbol.addEventListener('click', function () {
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -217,14 +207,6 @@
       g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.8, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + 1.1);
       o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 1.15);
     } catch (e) {}
-    if (reduce) return;
-    for (var i = 0; i < 5; i++) {
-      var r = document.createElement('span'); r.className = 'wave';
-      r.style.animationDelay = (i * .18) + 's';
-      r.addEventListener('animationend', function () { this.remove(); });
-      waves.appendChild(r);
-    }
-    symbol.classList.remove('thump'); void symbol.offsetWidth; symbol.classList.add('thump');
   });
 
   if (reduce || !window.gsap || !window.ScrollTrigger) return;
@@ -244,22 +226,10 @@
     });
   }
 
-  /* intro */
-  gsap.from('.symbol', { scale: .86, rotationY: -35, duration: 2, ease: 'expo.out' });
   gsap.from('h1', { letterSpacing: '.7em', duration: 2, ease: 'expo.out' });
-
-  /* 3D tilt on the symbol */
-  var rx = gsap.quickTo(symbol, 'rotationX', { duration: .8, ease: 'power3.out' });
-  var ry = gsap.quickTo(symbol, 'rotationY', { duration: .8, ease: 'power3.out' });
-  window.addEventListener('pointermove', function (e) {
-    if (e.pointerType === 'touch') return;
-    ry((e.clientX / innerWidth - .5) * 26);
-    rx(-(e.clientY / innerHeight - .5) * 18);
-  });
 
   /* scroll-linked motion (positions only: nothing is hidden) */
   gsap.to('.hero .inner', { yPercent: 22, scale: .9, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-  gsap.to('.waves', { scale: 1.5, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
   var desktop = matchMedia('(min-width: 46.01rem)').matches;
   gsap.utils.toArray('[data-speed]').forEach(function (el) {
     var d = parseFloat(el.dataset.speed) * (desktop ? 220 : 70);
@@ -281,28 +251,30 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const frame = document.querySelector('.frame');
-const canvas = frame.querySelector('canvas');
+const hero = document.querySelector('.hero');
+const canvas = hero.querySelector('canvas.scene');
+const stage = hero.querySelector('.symbol');
 
 try {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.82;
+  renderer.toneMappingExposure = 1.05;
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.03).texture;
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
-  camera.position.set(0, 0, 8.9);
+  const FOV = 30, CAM_Z = 14, HV = 2 * CAM_Z * Math.tan(FOV / 2 * Math.PI / 180);
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
+  camera.position.set(0, 0, CAM_Z);
 
   const V = THREE.Vector3;
-  const A = 1.9, BODY_R = 0.19, LEN = 0.9;
+  const A = 1.9, BODY_R = 0.2, LEN = 0.9, SNAKE_H = 4.3;
 
   /* figure-eight path, small loop on top, passing over itself at the middle */
   const curve = (t) => {
     const s = Math.sin(t), c = Math.cos(t), den = 1 + s * s, k = 1 - 0.16 * c;
-    return new V(A * s * c / den * k * 1.3, A * c / den * k, 0.15 * s);
+    return new V(A * s * c / den * k * 1.3, A * c / den * k, 0.16 * s);
   };
   const RAW = 4000, K = 1500;
   const raw = [], cum = [0];
@@ -322,8 +294,10 @@ try {
     const x = f * K, i = Math.floor(x) % K;
     return out.copy(E[i]).lerp(E[(i + 1) % K], x - Math.floor(x));
   };
+  const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
 
-  /* textures: raised scales + dark saddle bands */
+  /* textures: raised scales, and a dark diamond pattern down the back */
+  const BANDS = 12;
   const scaleTex = (() => {
     const c = document.createElement('canvas'); c.width = c.height = 512;
     const g = c.getContext('2d'), cw = 64, ch = 51.2;
@@ -341,18 +315,23 @@ try {
   const bandTex = (() => {
     const c = document.createElement('canvas'); c.width = 256; c.height = 256;
     const g = c.getContext('2d');
-    g.fillStyle = '#f6f6f4'; g.fillRect(0, 0, 256, 256);
-    g.fillStyle = '#6b6c69';
-    for (const cy of [64, 192]) { g.beginPath(); g.moveTo(128 - 52, cy); g.lineTo(128, cy - 50); g.lineTo(128 + 52, cy); g.lineTo(128, cy + 50); g.closePath(); g.fill(); }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.colorSpace = THREE.SRGBColorSpace;
+    g.fillStyle = '#f2f2f0'; g.fillRect(0, 0, 256, 256);
+    const diamond = (cx, cy, w, h, fill) => { g.beginPath(); g.moveTo(cx - w, cy); g.lineTo(cx, cy - h); g.lineTo(cx + w, cy); g.lineTo(cx, cy + h); g.closePath(); g.fillStyle = fill; g.fill(); };
+    for (const cy of [64, 192]) {
+      diamond(128, cy, 96, 60, '#17181a');
+      diamond(128, cy, 66, 41, '#7d7e80');
+      diamond(128, cy, 40, 25, '#17181a');
+      diamond(0, cy, 34, 20, '#3a3b3d'); diamond(256, cy, 34, 20, '#3a3b3d');
+    }
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     return t;
   })();
   const bodyLen = LEN * total;
   scaleTex.repeat.set(Math.round(bodyLen / (2 * Math.PI * BODY_R / 10) / 8), 1);
-  bandTex.repeat.set(11, 1);
+  bandTex.repeat.set(BANDS, 1);
 
   const chrome = new THREE.MeshStandardMaterial({ color: 0xb9babd, metalness: 1, roughness: 0.1 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xc4c5c8, metalness: 1, roughness: 0.14, map: bandTex, bumpMap: scaleTex, bumpScale: 0.55 });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xc9cacd, metalness: 1, roughness: 0.14, map: bandTex, bumpMap: scaleTex, bumpScale: 0.55 });
 
   /* body tube, rebuilt every frame so the snake can travel */
   const N = 300, R = 18;
@@ -371,19 +350,71 @@ try {
   const body = new THREE.Mesh(geo, skin);
   body.frustumCulled = false;
 
-  /* head */
+  /* head: wide viper skull with brow ridges, slit eyes, forked tongue, forehead gem */
   const head = new THREE.Group();
-  const skull = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), new THREE.MeshStandardMaterial({ color: 0xc4c5c8, metalness: 1, roughness: 0.14, bumpMap: scaleTex.clone(), bumpScale: 0.4 }));
-  skull.material.bumpMap.repeat.set(5, 5); skull.material.bumpMap.needsUpdate = true;
-  skull.scale.set(0.42, 0.27, 0.165);
-  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.075, 0), new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.6, metalness: 0.2, roughness: 0.15, flatShading: true }));
-  gem.position.set(-0.05, 0, 0.155);
-  const eyeM = new THREE.MeshStandardMaterial({ color: 0x080808, metalness: 0.4, roughness: 0.2 });
-  const eyeG = new THREE.SphereGeometry(0.03, 16, 12);
-  const e1 = new THREE.Mesh(eyeG, eyeM), e2 = new THREE.Mesh(eyeG, eyeM);
-  e1.position.set(0.24, 0.155, 0.085); e2.position.set(0.24, -0.155, 0.085);
-  head.add(skull, gem, e1, e2);
+  const skullGeo = new THREE.SphereGeometry(1, 64, 44);
+  const HL = 0.62;
+  const skullW = (x) => 0.47 * (1 - 0.6 * smooth(-0.3, 1, x)) * (1 - 0.42 * smooth(-0.3, -1, x));
+  const skullTop = (x, y, z) => z * 0.22 * (1 - 0.5 * smooth(-0.3, 1, x))
+    + 0.09 * Math.exp(-((x - 0.1) ** 2 / 0.07 + (Math.abs(y) - 0.62) ** 2 / 0.05))
+    + 0.03 * Math.exp(-((x - 0.75) ** 2 / 0.02 + (Math.abs(y) - 0.45) ** 2 / 0.06));
+  /* height of the skull surface above a point given in head space */
+  const surfZ = (hx, hy) => { const x = hx / HL, y = hy / skullW(x); return skullTop(x, y, Math.sqrt(Math.max(0, 1 - x * x - y * y))); };
+  {
+    const p = skullGeo.attributes.position, col = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const zz = z > 0 ? skullTop(x, y, z) : z * 0.13 * (1 - 0.5 * smooth(-0.3, 1, x));
+      const hx = x * HL, hy = y * skullW(x);
+      p.setXYZ(i, hx, hy, zz);
+      let c = 1;
+      if (z > 0) {
+        const crown = Math.abs(hx + 0.12) / 0.3 + Math.abs(hy) / 0.17;
+        if (crown < 1) c = crown > 0.62 ? 0.12 : 0.5;
+        const stripe = Math.abs(Math.abs(hy) - (0.2 + 0.1 * (0.3 - hx))) ;
+        if (hx < 0.3 && hx > -0.5 && stripe < 0.028) c = Math.min(c, 0.14);
+      }
+      col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = c;
+    }
+    skullGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    skullGeo.computeVertexNormals();
+  }
+  const headTex = scaleTex.clone(); headTex.repeat.set(9, 7); headTex.needsUpdate = true;
+  const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xb4b5b9, metalness: 1, roughness: 0.2, bumpMap: headTex, bumpScale: 0.7, vertexColors: true }));
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff3c00, emissiveIntensity: 2.2, roughness: 0.2, metalness: 0 });
+  const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const ball = new THREE.SphereGeometry(1, 20, 14);
+  for (const side of [1, -1]) {
+    const ex = 0.27, ey = side * 0.2, ez = surfZ(ex, ey);
+    const eye = new THREE.Mesh(ball, eyeMat);
+    eye.position.set(ex, ey, ez - 0.006); eye.scale.set(0.1, 0.045, 0.04); eye.rotation.z = side * -0.55;
+    const pupil = new THREE.Mesh(ball, pupilMat);
+    pupil.position.set(ex, ey, ez + 0.03); pupil.scale.set(0.085, 0.009, 0.012); pupil.rotation.z = side * -0.55;
+    head.add(eye, pupil);
+  }
+  const gemMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.6, metalness: 0.2, roughness: 0.12, flatShading: true });
+  const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.085, 0), gemMat);
+  gem.position.set(-0.12, 0, surfZ(-0.12, 0) + 0.03);
+  const tongue = new THREE.Group();
+  const tongueMat = new THREE.MeshStandardMaterial({ color: 0x7a1206, emissive: 0x4a0a02, roughness: 0.5, metalness: 0 });
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 0.3, 8), tongueMat);
+  stem.rotation.z = Math.PI / 2; stem.position.x = 0.15;
+  tongue.add(stem);
+  for (const side of [1, -1]) {
+    const prong = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.2, 8), tongueMat);
+    prong.rotation.z = -Math.PI / 2 + side * 0.4; prong.position.set(0.38, side * 0.035, 0);
+    tongue.add(prong);
+  }
+  tongue.position.set(HL - 0.06, 0, -0.01);
+  head.add(skull, gem, tongue);
   head.matrixAutoUpdate = false;
+
+  /* diamonds set down the back, one in each dark diamond */
+  const jewelUs = [];
+  for (let k = 0; k < BANDS; k++) { const u = (k + 0.5) / BANDS; if (u > 0.1 && u < 0.97) jewelUs.push(u); }
+  const jewelMat = new THREE.MeshStandardMaterial({ color: 0xeaf6ff, emissive: 0x6f9bc4, emissiveIntensity: 0.55, metalness: 1, roughness: 0.02, flatShading: true, envMapIntensity: 2 });
+  const jewels = new THREE.InstancedMesh(new THREE.OctahedronGeometry(1, 0), jewelMat, jewelUs.length);
+  jewels.frustumCulled = false;
 
   /* speaker rings inside each loop */
   const rings = new THREE.Group();
@@ -392,36 +423,80 @@ try {
     for (const p of E) if (Math.sign(p.y) === sign && (!best || Math.abs(p.x) > Math.abs(best.x))) best = p;
     return { y: best.y, r: Math.abs(best.x) - BODY_R - 0.1 };
   };
-  for (const l of [lobe(1), lobe(-1)]) {
-    for (const k of [1, 0.8, 0.62, 0.46, 0.2]) {
-      const m = new THREE.Mesh(new THREE.TorusGeometry(l.r * k, k === 0.2 ? 0.022 : 0.013, 12, 120), chrome);
-      m.position.y = l.y; rings.add(m);
+  const lobes = [lobe(1), lobe(-1)];
+  const speakers = lobes.map((l) => {
+    const g = new THREE.Group(); g.position.y = l.y;
+    for (const k of [1, 0.8, 0.62, 0.46, 0.2]) g.add(new THREE.Mesh(new THREE.TorusGeometry(l.r * k, k === 0.2 ? 0.024 : 0.013, 12, 120), chrome));
+    rings.add(g); return g;
+  });
+
+  const model = new THREE.Group();
+  model.add(body, head, jewels, rings);
+  model.position.y = 0.3;
+  const rig = new THREE.Group();
+  rig.add(model);
+  scene.add(rig);
+
+  /* emitted waveforms: wobbling rings that travel outward */
+  const SEG = 200, POOL = 16;
+  const waveGroup = new THREE.Group();
+  scene.add(waveGroup);
+  const waves = [];
+  for (let i = 0; i < POOL; i++) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SEG * 3), 3).setUsage(THREE.DynamicDrawUsage));
+    const m = new THREE.LineBasicMaterial({ color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false });
+    const line = new THREE.LineLoop(g, m); line.visible = false; line.frustumCulled = false;
+    waveGroup.add(line);
+    waves.push({ line, born: -99, energy: 0, seed: i * 1.7 });
+  }
+  const cIdle = new THREE.Color(0xcdbb95), cHot = new THREE.Color(0xff6a2a);
+  let nextWave = 0, lastEmit = -99;
+  function emit(t, energy) {
+    const w = waves[nextWave]; nextWave = (nextWave + 1) % POOL;
+    w.born = t; w.energy = energy; w.line.visible = true;
+    w.line.material.color.copy(cIdle).lerp(cHot, Math.min(1, energy * 1.4));
+    lastEmit = t;
+  }
+  function drawWaves(t) {
+    for (const w of waves) {
+      if (!w.line.visible) continue;
+      const life = 5.5 - 2 * w.energy, k = (t - w.born) / life;
+      if (k >= 1) { w.line.visible = false; continue; }
+      const rad = reduce ? 2.2 + (w.seed % 5) * 0.9 : 0.5 + (k * (2 - k)) * 9.5;
+      const amp = (0.035 + 0.2 * w.energy) * (1 - k * 0.6);
+      const p = w.line.geometry.attributes.position;
+      for (let i = 0; i < SEG; i++) {
+        const a = i / SEG * Math.PI * 2;
+        const n = Math.sin(a * 9 + w.seed + t * 2.4) + 0.6 * Math.sin(a * 17 - w.seed * 2 - t * 3.6) + 0.45 * Math.sin(a * 31 + t * 5.2);
+        const r = rad + amp * n * (0.4 + 0.6 * Math.abs(Math.sin(a * 2 + w.seed)));
+        p.setXYZ(i, Math.cos(a) * r, Math.sin(a) * r * 1.12, 0);
+      }
+      p.needsUpdate = true;
+      w.line.material.opacity = Math.pow(1 - k, 1.6) * (0.3 + 0.7 * w.energy) * Math.min(1, k * 12);
     }
   }
-
-  const snake = new THREE.Group();
-  snake.add(body, head, rings);
-  snake.position.y = 0.33;
-  scene.add(snake);
 
   /* fraction of the path where it crosses the middle on top */
   const S0 = cum[RAW / 4] / total;
 
-  const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4();
-  const frameAt = (f) => {
+  const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), SC = new V(), TF = new V(), UF = new V();
+  const lift = (u) => 0.34 * Math.pow(smooth(0.84, 1, u), 2);
+  const radius = (u) => BODY_R * (0.16 + 0.84 * Math.pow(smooth(0, 0.2, u), 0.7)) * (1 - 0.12 * smooth(0.93, 0.985, u));
+  const frameAt = (s, u) => {
+    const f = s - LEN * (1 - u);
     at(f, P); at(f + 0.0015, Q);
+    P.z += lift(u); Q.z += lift(Math.min(1, u + 0.0017));
     T.subVectors(Q, P).normalize();
     N1.crossVectors(T, Z).normalize();
     N2.crossVectors(N1, T);
   };
-  const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
 
-  function build(s) {
+  function build(s, t, energy) {
     for (let i = 0; i < N; i++) {
       const u = i / (N - 1);
-      frameAt(s - LEN * (1 - u));
-      let r = BODY_R * (0.16 + 0.84 * Math.pow(smooth(0, 0.2, u), 0.7));
-      r *= 1 - 0.14 * smooth(0.93, 0.985, u);
+      frameAt(s, u);
+      const r = radius(u);
       for (let j = 0; j <= R; j++) {
         const a = j / R * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), n = (i * (R + 1) + j) * 3;
         const nx = ca * N1.x + sa * N2.x, ny = ca * N1.y + sa * N2.y, nz = ca * N1.z + sa * N2.z;
@@ -431,46 +506,89 @@ try {
     }
     geo.attributes.position.needsUpdate = true;
     geo.attributes.normal.needsUpdate = true;
-    frameAt(s);
-    M.makeBasis(T, N1, N2).setPosition(P.x + T.x * 0.26, P.y + T.y * 0.26, P.z + T.z * 0.26 + 0.02);
+
+    jewelUs.forEach((u, k) => {
+      frameAt(s, u);
+      const r = radius(u), sz = r * (0.62 + 0.06 * Math.sin(t * 3 + k));
+      M.makeBasis(T, N1, N2);
+      SC.set(sz * 1.2, sz * 0.8, sz * 0.7);
+      M.scale(SC).setPosition(P.x + N2.x * r * 1.05, P.y + N2.y * r * 1.05, P.z + N2.z * r * 1.05);
+      jewels.setMatrixAt(k, M);
+    });
+    jewels.instanceMatrix.needsUpdate = true;
+
+    frameAt(s, 1);
+    const pitch = 0.32 + 0.18 * energy;
+    TF.copy(T).multiplyScalar(Math.cos(pitch)).addScaledVector(N2, Math.sin(pitch));
+    UF.copy(N2).multiplyScalar(Math.cos(pitch)).addScaledVector(T, -Math.sin(pitch));
+    M.makeBasis(TF, N1, UF).setPosition(P.x + TF.x * 0.42, P.y + TF.y * 0.42, P.z + TF.z * 0.42 + 0.02);
     head.matrix.copy(M);
   }
 
-  let px = 0, py = 0, visible = true, running = false;
-  addEventListener('pointermove', (e) => { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; });
+  let px = 0, py = 0, visible = true, running = false, energy = 0, thump = -99, last = 0, travel = 0, flashUntil = 0;
+  addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; } });
+  stage.addEventListener('click', () => {
+    energy = 1; thump = performance.now() / 1000;
+    if (reduce) { for (let i = 0; i < 4; i++) emit(thump, 0.7); flashUntil = thump + 4.3; if (!running) { running = true; requestAnimationFrame(loop); } }
+  });
 
   function size() {
-    const w = frame.clientWidth, h = frame.clientHeight;
+    const w = hero.clientWidth, h = hero.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
 
   function draw(now) {
-    const t = now / 1000;
-    const r = frame.getBoundingClientRect();
-    const prog = 1 - (r.top + r.height) / (innerHeight + r.height);
-    build(S0 + (reduce ? 0 : t * 0.022 + prog * 0.55));
-    snake.rotation.y = reduce ? -0.25 : (prog - 0.5) * 1.5 + px * 0.5 + Math.sin(t * 0.4) * 0.08;
-    snake.rotation.x = reduce ? 0 : -0.1 + py * 0.3;
+    const t = now / 1000, dt = Math.min(0.05, t - last); last = t;
+    energy *= Math.exp(-dt * 0.75);
+    if (energy < 0.004) energy = 0;
+
+    /* follow the placeholder in the page so layout and scroll motion carry over */
+    const hr = hero.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    const scale = (sr.height / hr.height) * HV / SNAKE_H;
+    rig.scale.setScalar(scale * (1 + 0.05 * energy));
+    rig.position.set(((sr.left + sr.width / 2 - hr.left) / hr.width - 0.5) * HV * camera.aspect, (0.5 - (sr.top + sr.height / 2 - hr.top) / hr.height) * HV, 0);
+    waveGroup.position.copy(rig.position); waveGroup.position.z = -0.6;
+    waveGroup.scale.setScalar(scale);
+
+    if (!reduce) {
+      travel += dt * (0.02 + 0.3 * energy);
+      const intro = 1 - Math.pow(1 - Math.min(1, t / 2.4), 4);
+      rig.rotation.y = (1 - intro) * -1.3 + px * 0.55 + Math.sin(t * 0.4) * 0.07;
+      rig.rotation.x = -0.06 + py * 0.32;
+      const every = 1.7 - 1.45 * Math.min(1, energy * 1.3);
+      if (t - lastEmit > every) emit(t, energy);
+    } else {
+      rig.rotation.set(0, -0.12, 0);
+    }
+    const beat = Math.exp(-(t - thump) * 6);
+    speakers.forEach((g, i) => g.scale.setScalar(1 + beat * 0.1 + energy * 0.03 * Math.sin(t * 34 + i)));
+    eyeMat.emissiveIntensity = 1.6 + 4 * energy;
+    gemMat.emissiveIntensity = 1.6 + 3 * energy;
     gem.rotation.z = t * 0.8;
+    const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
+    tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
+
+    build(S0 + travel, t, energy);
+    drawWaves(t);
     renderer.render(scene, camera);
   }
   function loop(now) {
-    if (!visible) { running = false; return; }
+    if (!visible || (reduce && now / 1000 > flashUntil)) { running = false; return; }
     draw(now);
     requestAnimationFrame(loop);
   }
 
   size();
   draw(0);
-  frame.classList.add('is3d');
-  new ResizeObserver(() => { size(); if (reduce) draw(0); }).observe(frame);
+  hero.classList.add('is3d');
+  new ResizeObserver(() => { size(); if (reduce) draw(performance.now()); }).observe(hero);
   if (!reduce) {
     new IntersectionObserver((entries) => {
       visible = entries[0].isIntersecting;
       if (visible && !running) { running = true; requestAnimationFrame(loop); }
-    }, { rootMargin: '200px' }).observe(frame);
+    }).observe(hero);
   }
 } catch (err) {
   console.warn('3D snake unavailable, showing the flat symbol instead.', err);
