@@ -42,12 +42,12 @@
   /* 1 — logo */
   .hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; overflow: hidden; padding: 6rem 0 3rem; }
   .hero::before { content: ""; position: absolute; left: 50%; top: 42%; width: 90vmax; height: 90vmax; transform: translate(-50%, -50%); background: radial-gradient(closest-side, #1b1a17 0%, #0c0c0b 45%, transparent 70%); }
-  .hero .inner { position: relative; display: grid; justify-items: center; }
-  canvas.scene { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
-  .hero.is3d canvas.scene { display: block; }
+  .hero .inner { position: relative; z-index: 2; display: grid; justify-items: center; }
+  canvas.scene { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; display: none; }
+  .is3d canvas.scene { display: block; }
   .symbol { position: relative; display: block; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 45%; -webkit-tap-highlight-color: transparent; }
   .symbol img { height: clamp(19rem, 58vh, 36rem); width: auto; }
-  .hero.is3d .symbol img { opacity: 0; }
+  .is3d .symbol img { opacity: 0; }
   h1 { font-family: var(--wide); font-weight: 400; font-size: clamp(1.3rem, 5vw, 2.6rem); letter-spacing: .34em; margin: 2.4rem -.34em 0 0; text-transform: uppercase; }
   h1 i { display: inline-block; width: .4em; height: .4em; border-radius: 50%; background: var(--gem); margin: 0 .3em 0 .04em; box-shadow: 0 0 18px rgba(255,106,42,.7); }
   .tag { margin-top: 1.1rem; }
@@ -56,7 +56,7 @@
   .cue::after { content: ""; width: 1px; height: 2.6rem; background: linear-gradient(var(--champ), transparent); }
 
   /* 2 — about */
-  section { position: relative; padding: clamp(5rem, 14vh, 10rem) 0; }
+  section { position: relative; z-index: 2; padding: clamp(5rem, 14vh, 10rem) 0; }
   .about .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 6rem); align-items: center; }
   .big { font-family: var(--serif); font-weight: 300; font-size: clamp(2.4rem, 5.6vw, 4.6rem); line-height: 1.05; margin: 1.4rem 0 1.6rem; letter-spacing: -.01em; }
   .big em { font-style: italic; color: var(--champ); }
@@ -72,7 +72,7 @@
   .frame .gemdot { position: absolute; left: 50.8%; top: 36.2%; width: 3.2%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: var(--gem); box-shadow: 0 0 22px 6px rgba(255,106,42,.75); }
 
   /* 3 — song */
-  .song { border-block: 1px solid var(--line); background: var(--panel); overflow: hidden; }
+  .song { border-block: 1px solid var(--line); background: rgba(14,14,13,.5); overflow: hidden; }
   .song .wrap { display: grid; grid-template-columns: minmax(0, 26rem) 1fr; gap: clamp(2rem, 6vw, 6rem); align-items: center; }
   .redcover { position: relative; aspect-ratio: 1; overflow: hidden; background: #B2231D; border-radius: 2px; box-shadow: 0 40px 80px -30px rgba(178,35,29,.55); }
   .redcover img { position: absolute; left: -10%; top: -22%; width: 120%; height: auto; max-width: none; }
@@ -97,7 +97,7 @@
   .row strong { font-family: var(--serif); font-weight: 300; font-size: clamp(2rem, 6vw, 4.2rem); line-height: 1; }
   .row span { font-family: var(--wide); font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
 
-  footer { padding: 3rem 0; text-align: center; }
+  footer { position: relative; z-index: 2; padding: 3rem 0; text-align: center; }
   footer .label { color: var(--muted); line-height: 2.2; }
 
   @media (max-width: 46rem) {
@@ -114,6 +114,7 @@
 </head>
 <body>
 <a class="skip" href="#listen">Skip to listen</a>
+<canvas class="scene" aria-hidden="true"></canvas>
 <header>
   <div class="wrap">
     <a class="brand" href="#top" aria-label="ekagra.808 home"><img src="assets/symbol-cream.svg" width="904" height="1450" alt=""><span>Ekagra 808</span></a>
@@ -123,7 +124,6 @@
 
 <main id="top">
   <div class="hero">
-    <canvas class="scene" aria-hidden="true"></canvas>
     <div class="inner">
       <button class="symbol" type="button" aria-label="Play an 808 beat and send out stronger sound waves">
         <img src="assets/symbol-cream.svg" width="904" height="1450" alt="ekagra.808 symbol: a snake coiled into a figure eight around two sets of speaker rings, with an orange gem on its head">
@@ -229,7 +229,6 @@
   gsap.from('h1', { letterSpacing: '.7em', duration: 2, ease: 'expo.out' });
 
   /* scroll-linked motion (positions only: nothing is hidden) */
-  gsap.to('.hero .inner', { yPercent: 22, scale: .9, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
   var desktop = matchMedia('(min-width: 46.01rem)').matches;
   gsap.utils.toArray('[data-speed]').forEach(function (el) {
     var d = parseFloat(el.dataset.speed) * (desktop ? 220 : 70);
@@ -250,32 +249,27 @@
 import * as THREE from 'three';
 
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const hero = document.querySelector('.hero');
-const canvas = hero.querySelector('canvas.scene');
-const stage = hero.querySelector('.symbol');
+const canvas = document.querySelector('canvas.scene');
+const stage = document.querySelector('.symbol');
+const V = THREE.Vector3;
+const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); return x * x * (3 - 2 * x); };
 
 (async () => {
   try {
-    /* 1. Rasterise the official symbol and derive metal, relief and gem layers from it */
+    /* ---------- 1. Read the official symbol: find the two speaker loops, keep the speaker rings ---------- */
     const img = new Image();
     img.src = 'assets/symbol-cream.svg';
     await img.decode();
-    const TW = 1024, TH = Math.round(TW * 1450 / 904);
+    const TW = 1024, TH = Math.round(TW * 1450 / 904), NP = TW * TH;
     const mk = () => { const c = document.createElement('canvas'); c.width = TW; c.height = TH; return c; };
     const src = mk(), sctx = src.getContext('2d', { willReadFrequently: true });
     sctx.drawImage(img, 0, 0, TW, TH);
     const d = sctx.getImageData(0, 0, TW, TH).data;
-
-    const metalC = mk(), gemC = mk(), normC = mk();
-    const metalI = new ImageData(TW, TH), gemI = new ImageData(TW, TH), normI = new ImageData(TW, TH);
-    const NP = TW * TH, ink = new Float32Array(NP);
+    const ink = new Float32Array(NP);
     let minX = TW, maxX = 0, minY = TH, maxY = 0;
     for (let p = 0, i = 0; p < NP; p++, i += 4) {
-      const a = d[i + 3] / 255;
-      const w = Math.min(1, Math.max(0, (d[i + 2] - 110) / 90));   /* cream ink = 1, orange gem and glow = 0 */
-      ink[p] = a * w;
+      ink[p] = d[i + 3] / 255 * Math.min(1, Math.max(0, (d[i + 2] - 110) / 90));
       if (ink[p] > 0.5) { const x = p % TW, y = (p / TW) | 0; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
-      gemI.data[i] = d[i]; gemI.data[i + 1] = d[i + 1]; gemI.data[i + 2] = d[i + 2]; gemI.data[i + 3] = a * (1 - w) * 255;
     }
     const blur = (srcA, r) => {
       const tmp = new Float32Array(NP), out = new Float32Array(NP), n = 2 * r + 1;
@@ -287,58 +281,46 @@ const stage = hero.querySelector('.symbol');
         for (let y = 0; y < TH; y++) { out[y * TW + x] = s / n; s += tmp[Math.min(TH - 1, y + r + 1) * TW + x] - tmp[Math.max(0, y - r) * TW + x]; } }
       return out;
     };
-    const ink1 = blur(ink, 1), ink2 = blur(blur(ink, 2), 2), inkHead = blur(blur(ink, 5), 5);
-
-    /* find the snake's two loops in the artwork: centre, outer edge and inner edge of each body ring */
     const CX = (minX + maxX) / 2;
-    const at = (x, y) => (x < 0 || y < 0 || x >= TW || y >= TH) ? 0 : ink[(y | 0) * TW + (x | 0)];
-    const radial = (cy, dir, r) => { let s = 0, n = 0; for (let a = 25; a <= 155; a += 1.5) { const t = a * Math.PI / 180; s += at(CX + Math.cos(t) * r, cy + dir * Math.sin(t) * r); n++; } return s / n; };
-    const ring = (cy, dir, rOut) => {
+    const inkAt = (x, y) => (x < 0 || y < 0 || x >= TW || y >= TH) ? 0 : ink[(y | 0) * TW + (x | 0)];
+    const radial = (cy, dir, r) => { let s = 0, n = 0; for (let a = 25; a <= 155; a += 1.5) { const t = a * Math.PI / 180; s += inkAt(CX + Math.cos(t) * r, cy + dir * Math.sin(t) * r); n++; } return s / n; };
+    const findRing = (cy, dir, rOut) => {
       let gap = 0, rIn = rOut * 0.6;
       for (let r = rOut - 12; r > rOut * 0.4; r--) { if (radial(cy, dir, r) < 0.035) { if (++gap >= 3) { rIn = r + 3; break; } } else gap = 0; }
-      return { cy, rc: (rOut + rIn) / 2, hw: (rOut - rIn) / 2 + 1 };
+      return { cy, rc: (rOut + rIn) / 2, hw: (rOut - rIn) / 2 + 1, rIn };
     };
     const rBot = (maxX - minX) / 2;
     let topMin = TW;
     for (let y = minY; y < minY + (maxY - minY) * 0.3; y++) for (let x = 0; x < CX; x++) if (ink[y * TW + x] > 0.5) { if (x < topMin) topMin = x; break; }
     const rTop = CX - topMin;
-    const loops = [ring(maxY - rBot, 1, rBot), ring(minY + rTop, -1, rTop)];
-    const gemY = 0.362 * TH;
+    const L2 = findRing(maxY - rBot, 1, rBot), L1 = findRing(minY + rTop, -1, rTop);   /* L1 top, L2 bottom */
 
-    const h = new Float32Array(NP);
+    /* speaker rings only (everything inside each loop), as relief */
+    const spkC = mk(), nrmC = mk(), spkI = new ImageData(TW, TH), nrmI = new ImageData(TW, TH);
+    const sInk = new Float32Array(NP);
+    for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+      const p = y * TW + x;
+      const inside = Math.hypot(x - CX, y - L1.cy) < L1.rIn - 3 || Math.hypot(x - CX, y - L2.cy) < L2.rIn - 3;
+      sInk[p] = inside ? ink[p] : 0;
+    }
+    const sH = blur(blur(sInk, 2), 2);
     for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
       const p = y * TW + x, i = p * 4;
-      let tube = 0, edge = 0;
-      for (const L of loops) {
-        const dr = Math.abs(Math.hypot(x - CX, y - L.cy) - L.rc);
-        if (dr < L.hw) { tube = Math.max(tube, Math.sqrt(L.hw * L.hw - Math.min(dr, L.hw * 0.985) ** 2)); edge = Math.max(edge, Math.min(1, L.hw - dr)); }
-      }
-      const win = Math.max(0, 1 - Math.abs(x - CX) / 130) > 0 && y > gemY - 80 && y < gemY + 210 ? 1 : 0;
-      const headSolid = win * Math.min(1, Math.max(0, (inkHead[p] - 0.1) / 0.07));
-      h[p] = tube + (tube > 0 ? 2.4 * ink1[p] : 3 * ink2[p]) + headSolid * (tube + 46 * inkHead[p]) * (tube > 0 ? 0.35 : 1);
-      const alpha = Math.max(edge, headSolid, ink[p]);
-      const shade = tube > 0 || headSolid > 0 ? 135 + 120 * Math.min(1, ink1[p] * 1.5) : 255;
-      metalI.data[i] = metalI.data[i + 1] = metalI.data[i + 2] = shade; metalI.data[i + 3] = alpha * 255;
+      spkI.data[i] = spkI.data[i + 1] = spkI.data[i + 2] = 255; spkI.data[i + 3] = sInk[p] * 255;
+      const dx = (sH[y * TW + Math.min(TW - 1, x + 1)] - sH[y * TW + Math.max(0, x - 1)]) * 3.5;
+      const dy = (sH[Math.min(TH - 1, y + 1) * TW + x] - sH[Math.max(0, y - 1) * TW + x]) * 3.5;
+      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz);
+      nrmI.data[i] = (nx / l * 0.5 + 0.5) * 255; nrmI.data[i + 1] = (ny / l * 0.5 + 0.5) * 255; nrmI.data[i + 2] = (nz / l * 0.5 + 0.5) * 255; nrmI.data[i + 3] = 255;
     }
-    for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
-      const p = y * TW + x, i = p * 4;
-      const dx = (h[y * TW + Math.min(TW - 1, x + 1)] - h[y * TW + Math.max(0, x - 1)]) / 2;
-      const dy = (h[Math.min(TH - 1, y + 1) * TW + x] - h[Math.max(0, y - 1) * TW + x]) / 2;
-      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
-      normI.data[i] = (nx * 0.5 + 0.5) * 255; normI.data[i + 1] = (ny * 0.5 + 0.5) * 255; normI.data[i + 2] = (nz * 0.5 + 0.5) * 255; normI.data[i + 3] = 255;
-    }
-    metalC.getContext('2d').putImageData(metalI, 0, 0);
-    gemC.getContext('2d').putImageData(gemI, 0, 0);
-    normC.getContext('2d').putImageData(normI, 0, 0);
+    spkC.getContext('2d').putImageData(spkI, 0, 0);
+    nrmC.getContext('2d').putImageData(nrmI, 0, 0);
 
-    /* 2. Renderer and a dark studio with bright strip lights, so the metal has something to reflect */
+    /* ---------- 2. Renderer, studio reflections ---------- */
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
-
     const tex = (c, srgb) => { const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
-    const metalTex = tex(metalC, true), gemTex = tex(gemC, true), normTex = tex(normC, false);
 
     const studio = new THREE.Scene();
     studio.background = new THREE.Color(0x030303);
@@ -346,155 +328,354 @@ const stage = hero.querySelector('.symbol');
       const m = new THREE.Mesh(new THREE.PlaneGeometry(w, hgt), new THREE.MeshBasicMaterial({ color: new THREE.Color(r, g, b), side: THREE.DoubleSide, toneMapped: false }));
       m.position.set(x, y, z); m.lookAt(0, 0, 0); studio.add(m);
     };
-    light(14, 1.6, 0, 7, 5, 14, 14, 14);        /* overhead strip */
-    light(1.6, 14, -8, 0, 4, 9, 9, 10);         /* left strip */
-    light(1.6, 14, 8, 1, 3, 6, 6, 6.5);         /* right strip */
-    light(9, 9, 0, 0, 10, 0.9, 0.9, 0.95);    /* soft front fill: flat faces read as mid silver */
-    light(3, 3, 6, -6, 5, 7, 2.6, 0.7);         /* warm kicker, echoing the gem */
-    const pmrem = new THREE.PMREMGenerator(renderer);
+    light(14, 1.6, 0, 7, 5, 14, 14, 14);
+    light(1.6, 14, -8, 0, 4, 9, 9, 10);
+    light(1.6, 14, 8, 1, 3, 6, 6, 6.5);
+    light(9, 9, 0, 0, 10, 0.4, 0.4, 0.43);
+    light(3, 3, 6, -6, 5, 7, 2.6, 0.7);
     const scene = new THREE.Scene();
-    scene.environment = pmrem.fromScene(studio, 0.02).texture;
+    scene.environment = new THREE.PMREMGenerator(renderer).fromScene(studio, 0.02).texture;
+    const FOV = 26, TAN = Math.tan(FOV / 2 * Math.PI / 180);
+    const camera = new THREE.PerspectiveCamera(FOV, 1, 10, 100000);
 
-    const FOV = 30, CAM_Z = 14, HV = 2 * CAM_Z * Math.tan(FOV / 2 * Math.PI / 180);
-    const camera = new THREE.PerspectiveCamera(FOV, 1, 0.1, 60);
-    camera.position.set(0, 0, CAM_Z);
+    /* world units are artwork pixels: x right from the symbol's centre line, y up from the symbol's top edge */
+    const pivot = new THREE.Group(), world = new THREE.Group();
+    pivot.position.set(0, -TH / 2, 0); world.position.set(0, TH / 2, 0);
+    pivot.add(world); scene.add(pivot);
 
-    /* 3. The symbol: stacked planes give it thickness, the top one carries the relief */
-    const H = 4.3, W = H * 904 / 1450;
-    const plane = new THREE.PlaneGeometry(W, H);
-    const rig = new THREE.Group();
-    const LAYERS = 4;
-    for (let k = LAYERS - 1; k >= 0; k--) {
-      const top = k === 0;
-      const m = new THREE.MeshStandardMaterial({
-        map: metalTex, transparent: true, depthWrite: false, metalness: 1,
-        roughness: top ? 0.16 : 0.4, color: top ? 0xf0f1f4 : new THREE.Color().setScalar(0.45 - k * 0.08),
-        normalMap: normTex, normalScale: new THREE.Vector2(1, 1),
-      });
-      const mesh = new THREE.Mesh(plane, m);
-      mesh.position.z = -k * 0.022; mesh.renderOrder = LAYERS - k;
-      rig.add(mesh);
+    /* ---------- 3. Speakers: the logo's own rings ---------- */
+    const spkTex = tex(spkC, true), nrmTex = tex(nrmC, false);
+    const spkMat = new THREE.MeshStandardMaterial({ map: spkTex, normalMap: nrmTex, transparent: true, depthWrite: false, metalness: 1, roughness: 0.18, color: 0xf0f1f4 });
+    const speakers = [L2, L1].map((L) => {
+      const R = L.rIn - 3, g = new THREE.CircleGeometry(R, 96), p = g.attributes.position, uv = g.attributes.uv;
+      for (let i = 0; i < p.count; i++) uv.setXY(i, (CX + p.getX(i)) / TW, 1 - (L.cy - p.getY(i)) / TH);
+      const m = new THREE.Mesh(g, spkMat);
+      m.position.set(0, -L.cy, -30); m.renderOrder = 2;
+      world.add(m);
+      return { mesh: m, L, pump: -99 };
+    });
+
+    /* ---------- 4. Sound waves: clean rings pushed out by each speaker ---------- */
+    const ringGeo = new THREE.RingGeometry(0.988, 1, 160);
+    const waves = [];
+    for (let i = 0; i < 24; i++) {
+      const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
+      m.visible = false; m.renderOrder = 1; world.add(m);
+      waves.push({ m, born: -99, hot: 0, spk: 0 });
     }
-    const gemMat = new THREE.MeshBasicMaterial({ map: gemTex, transparent: true, depthWrite: false, toneMapped: false });
-    const gemPlane = new THREE.Mesh(plane, gemMat);
-    gemPlane.position.z = 0.01; gemPlane.renderOrder = LAYERS + 1;
-    rig.add(gemPlane);
+    const cIdle = new THREE.Color(0xcdbb95), cHot = new THREE.Color(0xff6a2a);
+    let nextWave = 0;
+    function pulse(t, which, hot) {
+      const w = waves[nextWave]; nextWave = (nextWave + 1) % waves.length;
+      const s = speakers[which];
+      w.born = t; w.hot = hot; w.spk = which; w.m.visible = true;
+      w.m.position.set(0, -s.L.cy, -45);
+      w.m.material.color.copy(cIdle).lerp(cHot, hot);
+      s.pump = t; s.pumpAmt = 0.012 + 0.05 * hot;
+    }
+    function drawWaves(t) {
+      for (const w of waves) {
+        if (!w.m.visible) continue;
+        const life = 2.6, k = (t - w.born) / life;
+        if (k >= 1) { w.m.visible = false; continue; }
+        if (k < 0) { w.m.material.opacity = 0; continue; }
+        const L = speakers[w.spk].L, r0 = L.rIn * 0.2, r1 = (L.rc + L.hw) * 2.1;
+        const e = reduce ? 0.45 : 1 - Math.pow(1 - k, 2.2);
+        w.m.scale.setScalar(r0 + (r1 - r0) * e);
+        w.m.material.opacity = Math.pow(1 - k, 1.5) * Math.min(1, k * 10) * (0.2 + 0.75 * w.hot);
+      }
+      for (const s of speakers) s.mesh.scale.setScalar(1 + (s.pumpAmt || 0) * Math.exp(-Math.max(0, t - s.pump) * 9));
+    }
 
-    /* glow behind the gem */
+    /* ---------- 5. The snake's path: a crossed loop round both speakers, then out and down the page ---------- */
+    const TUBE = (L1.hw + L2.hw) / 2 * 0.98;          /* body radius, taken from the logo's own body width */
+    const C1 = { x: CX, y: L1.cy }, C2 = { x: CX, y: L2.cy }, r1 = L1.rc, r2 = L2.rc, D = C2.y - C1.y;
+    const ALPHA = Math.acos(Math.min(0.985, (r1 + r2) / D));
+    const sinA = Math.sin(ALPHA), cosA = Math.cos(ALPHA);
+    const T1L = { x: C1.x - r1 * sinA, y: C1.y + r1 * cosA }, T1R = { x: C1.x + r1 * sinA, y: C1.y + r1 * cosA };
+    const T2R = { x: C2.x + r2 * sinA, y: C2.y - r2 * cosA }, T2L = { x: C2.x - r2 * sinA, y: C2.y - r2 * cosA };
+    const XC = { x: CX, y: C1.y + D * r1 / (r1 + r2) };
+    const ZR = TUBE * 1.04;
+    const bell = (dist) => Math.exp(-((dist / 190) ** 2));
+
+    let belt = [], exitIndex = 0;
+    const line = (a, b, zSign, out) => {
+      const n = Math.max(2, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 3));
+      for (let i = 0; i < n; i++) { const t = i / n, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t; out.push([x, y, zSign * ZR * bell(Math.hypot(x - XC.x, y - XC.y))]); }
+    };
+    const arc = (c, r, a0, a1, out, mark) => {
+      const n = Math.ceil(Math.abs(a1 - a0) * r / 3);
+      for (let i = 0; i < n; i++) { const a = a0 + (a1 - a0) * i / n; if (mark && !exitIndex && a >= Math.PI / 2) exitIndex = out.length; out.push([c.x + r * Math.sin(a), c.y - r * Math.cos(a), 0]); }
+    };
+    line(XC, T2R, 1, belt);                                              /* over-strand, down to the bottom speaker */
+    arc(C2, r2, ALPHA, 2 * Math.PI - ALPHA, belt, true);                   /* round the bottom speaker */
+    line(T2L, T1R, -1, belt);                                            /* under-strand, up to the top speaker */
+    arc(C1, r1, Math.PI - ALPHA, -(Math.PI - ALPHA), belt, false);       /* round the top speaker */
+    line(T1L, XC, 1, belt);                                              /* over-strand, back to the crossing */
+
+    const DS = 4;
+    let E = [], beltLen = 0, extY = [], extStart = 0, bodyLen = 0;
+    let symTop = 0, symCx = 0, artPerPx = 1;
+
+    function buildPath() {
+      const sr = stage.getBoundingClientRect();
+      symTop = sr.top + scrollY; symCx = sr.left + sr.width / 2; artPerPx = TH / sr.height;
+      const vw = innerWidth, vh = innerHeight, pageH = document.documentElement.scrollHeight;
+      const pts = belt.concat(belt.slice(0, exitIndex));
+      /* leave the bottom speaker at its 3 o'clock point, heading straight down, then weave down the page */
+      const ex = belt[exitIndex], pageX0 = symCx + (ex[0] - CX) / artPerPx, pageY0 = symTop + ex[1] / artPerPx;
+      const amp = Math.min(vw * 0.36, 520), lam = Math.max(700, vh * 1.15), mid = vw / 2;
+      for (let Y = pageY0; Y < pageH + vh; Y += 2) {
+        const e = smooth(0, 520, Y - pageY0);
+        const X = pageX0 + (mid - pageX0) * e + amp * e * Math.sin((Y - pageY0) / lam * Math.PI * 2);
+        pts.push([CX + (X - symCx) * artPerPx, (Y - symTop) * artPerPx, 0]);
+      }
+      /* resample at even spacing */
+      const cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1], pts[i][2] - pts[i - 1][2]));
+      const total = cum[cum.length - 1];
+      E = [];
+      for (let s = 0, j = 0; s < total; s += DS) {
+        while (cum[j + 1] < s) j++;
+        const t = (s - cum[j]) / (cum[j + 1] - cum[j] || 1), a = pts[j], b = pts[j + 1];
+        E.push(new V(a[0] + (b[0] - a[0]) * t - CX, -(a[1] + (b[1] - a[1]) * t), a[2] + (b[2] - a[2]) * t));
+      }
+      beltLen = cum[belt.length - 1];
+      bodyLen = beltLen * 0.93;
+      extStart = Math.round(beltLen / DS);
+      extY = []; for (let i = extStart; i < E.length; i++) extY.push(-E[i].y);
+    }
+    const at = (s, out) => {
+      const x = Math.min(E.length - 1.001, Math.max(0, s / DS)), i = Math.floor(x);
+      return out.copy(E[i]).lerp(E[i + 1], x - i);
+    };
+    /* how far past the resting pose the head must be for its artwork-y to reach `ay` */
+    const advanceFor = (ay) => {
+      if (ay <= extY[0]) return 0;
+      let lo = 0, hi = extY.length - 1;
+      while (lo < hi) { const m = (lo + hi + 1) >> 1; if (extY[m] <= ay) lo = m; else hi = m - 1; }
+      return lo * DS;
+    };
+
+    /* ---------- 6. Snake body ---------- */
+    const scaleTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 512;
+      const g = c.getContext('2d'), cw = 128, ch = 512 / 6;
+      g.fillStyle = '#555'; g.fillRect(0, 0, 512, 512);
+      for (let r = -1; r <= 13; r++) for (let q = -1; q <= 5; q++) {
+        const x = (q + (r & 1) * 0.5) * cw, y = r * ch / 2;
+        const grad = g.createLinearGradient(x - cw / 2, y, x + cw / 2, y);
+        grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#3a3a3a');
+        g.beginPath(); g.moveTo(x - cw / 2, y); g.lineTo(x, y - ch / 2); g.lineTo(x + cw / 2, y); g.lineTo(x, y + ch / 2); g.closePath();
+        g.fillStyle = grad; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 5; g.stroke();
+      }
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.anisotropy = 8;
+      return t;
+    })();
+    /* faint dark lattice lines between scales, like the logo's crosshatch: no blotches */
+    const latticeTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 512;
+      const g = c.getContext('2d'), cw = 128, ch = 512 / 6;
+      g.fillStyle = '#ffffff'; g.fillRect(0, 0, 512, 512);
+      g.strokeStyle = '#8f9095'; g.lineWidth = 5;
+      for (let r = -1; r <= 13; r++) for (let q = -1; q <= 5; q++) {
+        const x = (q + (r & 1) * 0.5) * cw, y = r * ch / 2;
+        g.beginPath(); g.moveTo(x - cw / 2, y); g.lineTo(x, y - ch / 2); g.lineTo(x + cw / 2, y); g.lineTo(x, y + ch / 2); g.closePath(); g.stroke();
+      }
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.anisotropy = 8; t.colorSpace = THREE.SRGBColorSpace;
+      return t;
+    })();
+    const BUMP = TUBE * 0.16;
+    const skin = new THREE.MeshStandardMaterial({ color: 0xf2f3f5, metalness: 1, roughness: 0.13, map: latticeTex, bumpMap: scaleTex, bumpScale: BUMP });
+
+    const N = 420, R = 18;
+    const pos = new Float32Array(N * (R + 1) * 3), nor = new Float32Array(N * (R + 1) * 3), uv = new Float32Array(N * (R + 1) * 2);
+    const idx = [];
+    for (let i = 0; i < N; i++) for (let j = 0; j <= R; j++) {
+      const n = i * (R + 1) + j;
+      uv[n * 2] = i / (N - 1); uv[n * 2 + 1] = j / R;
+      if (i < N - 1 && j < R) { const a = n, b = n + R + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    const body = new THREE.Mesh(geo, skin);
+    body.frustumCulled = false; body.renderOrder = 3;
+    world.add(body);
+
+    /* ---------- 7. Head: viper skull, slit eyes, tongue, and the nagamani on its brow ---------- */
+    const head = new THREE.Group();
+    const HL = 0.62;
+    const skullW = (x) => 0.47 * (1 - 0.6 * smooth(-0.3, 1, x)) * (1 - 0.42 * smooth(-0.3, -1, x));
+    const skullTop = (x, y, z) => z * 0.22 * (1 - 0.5 * smooth(-0.3, 1, x))
+      + 0.09 * Math.exp(-((x - 0.1) ** 2 / 0.07 + (Math.abs(y) - 0.62) ** 2 / 0.05))
+      + 0.03 * Math.exp(-((x - 0.75) ** 2 / 0.02 + (Math.abs(y) - 0.45) ** 2 / 0.06));
+    const surfZ = (hx, hy) => { const x = hx / HL, y = hy / skullW(x); return skullTop(x, y, Math.sqrt(Math.max(0, 1 - x * x - y * y))); };
+    const skullGeo = new THREE.SphereGeometry(1, 64, 44);
+    {
+      const p = skullGeo.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        p.setXYZ(i, x * HL, y * skullW(x), z > 0 ? skullTop(x, y, z) : z * 0.13 * (1 - 0.5 * smooth(-0.3, 1, x)));
+      }
+      skullGeo.computeVertexNormals();
+    }
+    const HS = TUBE * 2 * 1.9 / 0.94;                 /* head 1.5x as wide as the body */
+    const headTex = scaleTex.clone(); headTex.repeat.set(4, 3); headTex.needsUpdate = true;
+    const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xe6e7ea, metalness: 1, roughness: 0.17, bumpMap: headTex, bumpScale: BUMP * 1.4 / HS }));
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff3c00, emissiveIntensity: 2.2, roughness: 0.2, metalness: 0 });
+    const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    const ball = new THREE.SphereGeometry(1, 20, 14);
+    for (const side of [1, -1]) {
+      const ex = 0.27, ey = side * 0.2, ez = surfZ(ex, ey);
+      const eye = new THREE.Mesh(ball, eyeMat);
+      eye.position.set(ex, ey, ez - 0.006); eye.scale.set(0.1, 0.045, 0.04); eye.rotation.z = side * -0.55;
+      const pupil = new THREE.Mesh(ball, pupilMat);
+      pupil.position.set(ex, ey, ez + 0.03); pupil.scale.set(0.085, 0.009, 0.012); pupil.rotation.z = side * -0.55;
+      head.add(eye, pupil);
+    }
+    const gemMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.8, metalness: 0.2, roughness: 0.12, flatShading: true });
+    const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 0), gemMat);
+    gem.position.set(-0.1, 0, surfZ(-0.1, 0) + 0.04);
     const glowC = document.createElement('canvas'); glowC.width = glowC.height = 128;
     { const g = glowC.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
       gr.addColorStop(0, 'rgba(255,120,50,1)'); gr.addColorStop(0.35, 'rgba(255,90,31,.45)'); gr.addColorStop(1, 'rgba(255,90,31,0)');
       g.fillStyle = gr; g.fillRect(0, 0, 128, 128); }
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(glowC, true), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
-    const GEM = new THREE.Vector3((0.508 - 0.5) * W, (0.5 - 0.362) * H, 0.03);
-    glow.position.copy(GEM); glow.renderOrder = LAYERS + 2;
-    rig.add(glow);
-    scene.add(rig);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(glowC, true), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+    glow.position.copy(gem.position); glow.renderOrder = 6;
+    const tongue = new THREE.Group();
+    const tongueMat = new THREE.MeshStandardMaterial({ color: 0x7a1206, emissive: 0x4a0a02, roughness: 0.5, metalness: 0 });
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 0.3, 8), tongueMat);
+    stem.rotation.z = Math.PI / 2; stem.position.x = 0.15; tongue.add(stem);
+    for (const side of [1, -1]) {
+      const prong = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.2, 8), tongueMat);
+      prong.rotation.z = -Math.PI / 2 + side * 0.4; prong.position.set(0.38, side * 0.035, 0); tongue.add(prong);
+    }
+    tongue.position.set(HL - 0.06, 0, -0.01);
+    head.add(skull, gem, glow, tongue);
+    head.matrixAutoUpdate = false; head.renderOrder = 4;
+    world.add(head);
 
-    /* 4. Waveforms sent out by the two speakers */
-    const SPEAKERS = [new THREE.Vector2(0, (0.5 - 0.69) * H), new THREE.Vector2(0, (0.5 - 0.19) * H)];
-    const SEG = 200, POOL = 18;
-    const waveGroup = new THREE.Group();
-    scene.add(waveGroup);
-    const waves = [];
-    for (let i = 0; i < POOL; i++) {
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(SEG * 3), 3).setUsage(THREE.DynamicDrawUsage));
-      const line = new THREE.LineLoop(g, new THREE.LineBasicMaterial({ color: 0xcdbb95, transparent: true, opacity: 0, depthWrite: false }));
-      line.visible = false; line.frustumCulled = false;
-      waveGroup.add(line);
-      waves.push({ line, born: -99, energy: 0, seed: i * 1.7 });
-    }
-    const cIdle = new THREE.Color(0xcdbb95), cHot = new THREE.Color(0xff6a2a);
-    let nextWave = 0, lastEmit = -99, emitCount = 0;
-    function emit(t, energy, which) {
-      const w = waves[nextWave]; nextWave = (nextWave + 1) % POOL;
-      const c = SPEAKERS[which];
-      w.born = t; w.energy = energy; w.line.visible = true; w.line.position.set(c.x, c.y, 0);
-      w.line.material.color.copy(cIdle).lerp(cHot, Math.min(1, energy * 1.4));
-      lastEmit = t;
-    }
-    function drawWaves(t) {
-      for (const w of waves) {
-        if (!w.line.visible) continue;
-        const life = 5.5 - 2 * w.energy, k = (t - w.born) / life;
-        if (k >= 1) { w.line.visible = false; continue; }
-        const rad = reduce ? 1.6 + (w.seed % 5) * 0.8 : 0.35 + (k * (2 - k)) * 9.5;
-        const amp = (0.03 + 0.2 * w.energy) * (1 - k * 0.6);
-        const p = w.line.geometry.attributes.position;
-        for (let i = 0; i < SEG; i++) {
-          const a = i / SEG * Math.PI * 2;
-          const n = Math.sin(a * 9 + w.seed + t * 2.4) + 0.6 * Math.sin(a * 17 - w.seed * 2 - t * 3.6) + 0.45 * Math.sin(a * 31 + t * 5.2);
-          const r = rad + amp * n * (0.4 + 0.6 * Math.abs(Math.sin(a * 2 + w.seed)));
-          p.setXYZ(i, Math.cos(a) * r, Math.sin(a) * r, 0);
+    const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
+    const radius = (u) => TUBE * (0.14 + 0.86 * Math.pow(smooth(0, 0.2, u), 0.7)) * (1 - 0.1 * smooth(0.94, 0.99, u));
+    let liftAmt = 1;
+    const frameAt = (sHead, u) => {
+      const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 0.9 * Math.pow(smooth(0.9, 1, u), 2);
+      at(s, P); at(s + 6, Q);
+      P.z += lz; Q.z += lz;
+      T.subVectors(Q, P).normalize();
+      N1.crossVectors(T, Z).normalize();
+      N2.crossVectors(N1, T);
+    };
+    function build(sHead, energy) {
+      for (let i = 0; i < N; i++) {
+        const u = i / (N - 1);
+        frameAt(sHead, u);
+        const r = radius(u);
+        for (let j = 0; j <= R; j++) {
+          const a = j / R * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), n = (i * (R + 1) + j) * 3;
+          const nx = ca * N1.x + sa * N2.x, ny = ca * N1.y + sa * N2.y, nz = ca * N1.z + sa * N2.z;
+          nor[n] = nx; nor[n + 1] = ny; nor[n + 2] = nz;
+          pos[n] = P.x + nx * r; pos[n + 1] = P.y + ny * r; pos[n + 2] = P.z + nz * r;
         }
-        p.needsUpdate = true;
-        w.line.material.opacity = Math.pow(1 - k, 1.6) * (0.32 + 0.68 * w.energy) * Math.min(1, k * 12);
       }
+      geo.attributes.position.needsUpdate = true;
+      geo.attributes.normal.needsUpdate = true;
+      frameAt(sHead, 1);
+      const pitch = 0.22 * liftAmt + 0.2 * energy;
+      TF.copy(T).multiplyScalar(Math.cos(pitch)).addScaledVector(N2, Math.sin(pitch));
+      UF.copy(N2).multiplyScalar(Math.cos(pitch)).addScaledVector(T, -Math.sin(pitch));
+      M.makeBasis(TF, N1, UF).scale(HSV).setPosition(P.x + TF.x * 0.4 * HS, P.y + TF.y * 0.4 * HS, P.z + TF.z * 0.4 * HS + 2);
+      head.matrix.copy(M);
     }
 
-    /* 5. Motion */
-    let px = 0, py = 0, visible = true, running = false, energy = 0, thump = -99, last = 0, flashUntil = 0;
+    /* ---------- 8. Layout, scroll and animation ---------- */
+    function size() {
+      renderer.setSize(innerWidth, innerHeight, false);
+      camera.aspect = innerWidth / innerHeight;
+      buildPath();
+      scaleTex.repeat.set(Math.round(bodyLen / (2 * Math.PI * TUBE / 6) / 4), 1);
+      latticeTex.repeat.copy(scaleTex.repeat);
+      camera.position.z = innerHeight * artPerPx / (2 * TAN);
+      camera.near = camera.position.z * 0.05; camera.far = camera.position.z * 4;
+      camera.updateProjectionMatrix();
+    }
+
+    let px = 0, py = 0, energy = 0, last = 0, cur = 0, burstUntil = -99, nextPulse = 0, pulseCount = 0, running = false;
     addEventListener('pointermove', (e) => { if (e.pointerType !== 'touch') { px = e.clientX / innerWidth - 0.5; py = e.clientY / innerHeight - 0.5; } });
     stage.addEventListener('click', () => {
-      energy = 1; thump = performance.now() / 1000;
-      if (reduce) { for (let i = 0; i < 4; i++) emit(thump, 0.7, i % 2); flashUntil = thump + 4.3; if (!running) { running = true; requestAnimationFrame(loop); } }
+      const t = performance.now() / 1000;
+      energy = 1; burstUntil = t + 2.4; nextPulse = t;
+      if (!running) { running = true; requestAnimationFrame(loop); }
     });
-
-    function size() {
-      const w = hero.clientWidth, hh = hero.clientHeight;
-      if (!w || !hh) return;
-      renderer.setSize(w, hh, false);
-      camera.aspect = w / hh; camera.updateProjectionMatrix();
-    }
 
     function draw(now) {
       const t = now / 1000, dt = Math.min(0.05, t - last); last = t;
-      energy *= Math.exp(-dt * 0.75);
+      energy *= Math.exp(-dt * 0.8);
       if (energy < 0.004) energy = 0;
+      const sy = scrollY, vh = innerHeight, vw = innerWidth;
 
-      /* follow the placeholder in the page so layout and scroll motion carry over */
-      const hr = hero.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-      const scale = (sr.height / hr.height) * HV / H;
-      const beat = Math.exp(-Math.max(0, t - thump) * 6);
-      rig.scale.setScalar(scale * (1 + 0.05 * beat + 0.012 * energy * Math.sin(t * 34)));
-      rig.position.set(((sr.left + sr.width / 2 - hr.left) / hr.width - 0.5) * HV * camera.aspect, (0.5 - (sr.top + sr.height / 2 - hr.top) / hr.height) * HV, 0);
-      waveGroup.position.copy(rig.position); waveGroup.position.z = -0.5;
-      waveGroup.scale.setScalar(scale);
+      canvas.style.opacity = (1 - 0.56 * smooth(0.3, 0.95, sy / vh)).toFixed(3);   /* dim once it travels behind the text */
+      camera.position.x = (vw / 2 - symCx) * artPerPx;
+      camera.position.y = -(sy + vh / 2 - symTop) * artPerPx;
 
-      if (!reduce) {
-        const intro = 1 - Math.pow(1 - Math.min(1, t / 2.6), 4);
-        rig.rotation.y = (1 - intro) * -1.4 + px * 0.7 + Math.sin(t * 0.5) * 0.24;
-        rig.rotation.x = py * 0.4 + Math.sin(t * 0.37) * 0.07;
-        const every = 1.7 - 1.45 * Math.min(1, energy * 1.3);
-        if (t - lastEmit > every) emit(t, energy, energy > 0.15 ? emitCount++ % 2 : 0);
-      } else {
-        rig.rotation.set(0.05, -0.2, 0);
+      /* the head leads the scroll: it leaves the coil and travels down the page */
+      let target = 0;
+      if (!reduce && sy > 2) {
+        const restY = symTop + XC.y / artPerPx;
+        const pageY = sy + Math.min(restY + 0.3 * sy, vh * 0.7);
+        target = advanceFor((pageY - symTop) * artPerPx);
       }
-      glow.scale.setScalar(0.3 + 0.9 * energy + 0.03 * Math.sin(t * 2));
-      gemMat.color.setScalar(1 + 1.5 * energy);
+      cur += (target - cur) * Math.min(1, dt * 5);
+      if (Math.abs(target - cur) < 0.5) cur = target;
+      liftAmt = 1 - smooth(0, 500, cur);
 
+      const calm = Math.max(0, 1 - sy / (vh * 0.6));
+      pivot.rotation.y = reduce ? 0 : calm * (px * 0.5 + Math.sin(t * 0.5) * 0.12) + (1 - Math.pow(1 - Math.min(1, t / 2.6), 4) - 1) * 1.2 * calm;
+      pivot.rotation.x = reduce ? 0 : calm * (py * 0.3 + Math.sin(t * 0.37) * 0.04);
+
+      /* sound waves from the speakers: slow breathing when idle, a fast burst after a tap */
+      const bursting = t < burstUntil;
+      if (t >= nextPulse && (!reduce || bursting)) {
+        const hot = bursting ? Math.max(0.35, energy) : 0;
+        pulse(t, 0, hot);
+        pulse(t + (bursting ? 0.06 : 0.22), 1, hot);
+        nextPulse = t + (bursting ? 0.26 : 1.5);
+        pulseCount++;
+      }
+
+      eyeMat.emissiveIntensity = 2.2 + 4 * energy;
+      gemMat.emissiveIntensity = 1.8 + 3.5 * energy;
+      gem.rotation.z = t * 0.8;
+      glow.scale.setScalar(0.26 + 1.3 * energy + 0.03 * Math.sin(t * 2));
+      const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
+      tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
+
+      build(beltLen + cur, energy);
       drawWaves(t);
       renderer.render(scene, camera);
     }
     function loop(now) {
-      if (!visible || (reduce && now / 1000 > flashUntil)) { running = false; return; }
+      if (document.hidden) { running = false; return; }
       draw(now);
+      if (reduce && performance.now() / 1000 > burstUntil + 3) { running = false; return; }
       requestAnimationFrame(loop);
     }
+    const kick = () => { if (!running) { running = true; requestAnimationFrame(loop); } };
 
     size();
     draw(performance.now());
-    hero.classList.add('is3d');
-    new ResizeObserver(() => { size(); if (reduce) draw(performance.now()); }).observe(hero);
-    if (!reduce) {
-      new IntersectionObserver((entries) => {
-        visible = entries[0].isIntersecting;
-        if (visible && !running) { running = true; requestAnimationFrame(loop); }
-      }).observe(hero);
-    }
+    document.documentElement.classList.add('is3d');
+    let resizeTimer;
+    addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { size(); if (reduce) draw(performance.now()); }, 120); });
+    addEventListener('load', () => { size(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && !reduce) kick(); });
+    if (reduce) addEventListener('scroll', () => draw(performance.now()), { passive: true });
+    else kick();
   } catch (err) {
-    console.warn('3D symbol unavailable, showing the flat symbol instead.', err);
+    console.warn('3D snake unavailable, showing the flat symbol instead.', err);
   }
 })();
 </script>
