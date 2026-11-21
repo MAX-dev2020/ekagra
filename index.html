@@ -43,11 +43,11 @@
   .hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; overflow: hidden; padding: 5.5rem 0 2rem; }
   .hero::before { content: ""; position: absolute; left: 50%; top: 42%; width: 90vmax; height: 90vmax; transform: translate(-50%, -50%); background: radial-gradient(closest-side, #1b1a17 0%, #0c0c0b 45%, transparent 70%); }
   .hero .inner { position: relative; z-index: 2; display: grid; justify-items: center; }
-  canvas.scene { position: absolute; top: 0; left: 0; width: 100%; height: 140vh; height: 140lvh; z-index: 1; pointer-events: none; display: none; will-change: transform; }
+  canvas.scene { position: absolute; top: 0; left: 0; width: 100%; height: 125vh; height: 125lvh; z-index: 1; pointer-events: none; display: none; will-change: transform; }
   .is3d canvas.scene { display: block; }
   .symbol { position: relative; display: block; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 45%; -webkit-tap-highlight-color: transparent; }
   .symbol img { height: clamp(16rem, 52vh, 34rem); height: clamp(16rem, 52svh, 34rem); width: auto; }
-  .is3d .symbol img { opacity: 0; }
+  .is3d .symbol img { visibility: hidden; }
   h1 { font-family: var(--wide); font-weight: 400; font-size: clamp(1.3rem, 5vw, 2.6rem); letter-spacing: .34em; margin: 2rem -.34em 0 0; text-transform: uppercase; }
   h1 i { display: inline-block; width: .4em; height: .4em; border-radius: 50%; background: var(--gem); margin: 0 .3em 0 .04em; box-shadow: 0 0 18px rgba(255,106,42,.7); }
   .tag { margin-top: 1.1rem; line-height: 2.1; }
@@ -82,7 +82,9 @@
   .redcover img { position: absolute; left: -10%; top: -22%; width: 120%; height: auto; max-width: none; }
   .song h2 { font-family: var(--serif); font-weight: 300; font-style: italic; font-size: clamp(3rem, 8vw, 6.5rem); line-height: .95; margin: 1.2rem 0 1.8rem; }
   .bars { display: flex; align-items: center; gap: 3px; height: 4rem; margin-bottom: 2.2rem; }
-  .bars span { flex: 1; background: #8f8468; border-radius: 1px; min-width: 1px; animation: eq 1.6s ease-in-out infinite; }
+  .bars span { flex: 1; background: #8f8468; border-radius: 1px; min-width: 1px; animation: eq 1.6s ease-in-out infinite paused; }
+  .song.live .bars span { animation-play-state: running; }
+  .redcover img { will-change: transform; }
   .bars span.on { background: var(--gem); }
   @keyframes eq { 50% { transform: scaleY(.45); } }
   .play { display: inline-flex; align-items: center; gap: 1rem; font-family: var(--wide); font-size: .64rem; letter-spacing: .34em; text-transform: uppercase; }
@@ -197,15 +199,20 @@
 
   /* waveform bars */
   var bars = document.querySelector('.bars');
-  for (var i = 0; i < 72; i++) {
+  for (var i = 0; i < 48; i++) {
     var s = document.createElement('span');
     var h = 18 + 70 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.23)) + 12 * Math.abs(Math.sin(i * 2.7));
     s.style.height = Math.min(100, h).toFixed(0) + '%';
     s.style.animationDuration = (1.1 + (i * 37 % 10) / 10).toFixed(2) + 's';
     s.style.animationDelay = (-(i * 53 % 17) / 10).toFixed(2) + 's';
-    if (i < 26) s.className = 'on';
+    if (i < 17) s.className = 'on';
     bars.appendChild(s);
   }
+
+  /* the waveform bars only animate while the song section is on screen */
+  var song = document.querySelector('.song');
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { song.classList.toggle('live', e[0].isIntersecting); }).observe(song);
+  else song.classList.add('live');
 
   /* tap the symbol: 808 + sound waves */
   var symbol = document.querySelector('.symbol'), ctx;
@@ -246,7 +253,7 @@
     gsap.fromTo(el, { y: d }, { y: -d, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: .6 } });
   });
   gsap.fromTo('.ghost', { xPercent: 8 }, { xPercent: -45, ease: 'none', scrollTrigger: { trigger: '.song', start: 'top bottom', end: 'bottom top', scrub: .6 } });
-  gsap.fromTo('.redcover img', { yPercent: -4, scale: 1.08 }, { yPercent: 4, scale: 1, ease: 'none', scrollTrigger: { trigger: '.song', start: 'top bottom', end: 'bottom top', scrub: true } });
+  gsap.fromTo('.redcover img', { yPercent: -3 }, { yPercent: 3, ease: 'none', scrollTrigger: { trigger: '.song', start: 'top bottom', end: 'bottom top', scrub: true } });
   gsap.utils.toArray('.row').forEach(function (row, i) {
     gsap.fromTo(row, { x: 60 + i * 30 }, { x: 0, ease: 'power2.out', scrollTrigger: { trigger: row, start: 'top 105%', end: 'top 70%', scrub: .5 } });
   });
@@ -676,11 +683,15 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     }
 
     /* ---------- 8. Layout, scroll and animation ---------- */
-    const CH = () => canvas.clientHeight || innerHeight * 1.4;   /* canvas height: 140% of the screen (lvh, so a phone's address bar doesn't change it) */
-    const VH = () => CH() / 1.4;
+    const CH = () => canvas.clientHeight || innerHeight * 1.25;   /* canvas height: 125% of the screen (lvh, so a phone's address bar doesn't change it) */
+    const VH = () => CH() / 1.25;
+    let qual = 1, slowFrames = 0, frameAvg = 0.016, prevCur = -1, prevTop = -1, lastRaw = 0;
+    /* drawing resolution: never more than about 1.7 million pixels, however large the screen */
+    const pickPR = () => Math.max(0.55, Math.min(devicePixelRatio, coarse ? 1.25 : 1.5, Math.sqrt(1.7e6 / ((canvas.clientWidth || innerWidth) * CH()))) * qual);
     let pageHt = 0, lastTop = -1;
     function size() {
       const cw = canvas.clientWidth || innerWidth;
+      renderer.setPixelRatio(pickPR());
       renderer.setSize(cw, CH(), false);
       camera.aspect = cw / CH();
       buildPath();
@@ -735,7 +746,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
 
       /* sound waves from the speakers: slow breathing when idle, a fast burst after a tap */
       const bursting = t < burstUntil;
-      if (t >= nextPulse && (bursting || !reduce)) {
+      if (t >= nextPulse && (bursting || (!reduce && sy < vh * 1.3))) {
         const hot = bursting ? Math.max(0.35, energy) : 0;
         pulse(t, 0, hot);
         pulse(t, 1, hot);                                   /* both speakers fire on the same beat */
@@ -746,6 +757,12 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       gemMat.color.setScalar(1 + 1.6 * energy);
       glow.scale.setScalar(95 + 260 * energy + 6 * Math.sin(t * 2));
 
+      /* below the first screen, with nothing moving, there is nothing new to draw */
+      const moving = cur !== prevCur || yTop !== prevTop; prevCur = cur; prevTop = yTop;
+      if (!moving && energy === 0 && sy > vh * 1.3) { lastRaw = 0; return; }
+      /* if frames are running slow, step the drawing resolution down once and keep it there */
+      if (lastRaw && now - lastRaw < 90) { frameAvg = frameAvg * 0.94 + (now - lastRaw) / 1000 * 0.06;   /* long gaps are a hidden tab, not a slow machine */ if (frameAvg > 0.0215 && ++slowFrames > 50 && qual > 0.6) { qual *= 0.82; slowFrames = 0; frameAvg = 0.016; renderer.setPixelRatio(pickPR()); renderer.setSize(canvas.clientWidth || innerWidth, CH(), false); } }
+      lastRaw = now;
       if (cur !== builtS || energy !== builtE || liftAmt !== builtL) { build(beltLen + cur, energy); builtS = cur; builtE = energy; builtL = liftAmt; }
       drawWaves(t);
       renderer.render(scene, camera);
