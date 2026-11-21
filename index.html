@@ -563,7 +563,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const hN = SK.n.clone(), hC = SK.c.clone(), hR = SK.r.clone();
     for (const t of [hN, hC, hR]) { t.repeat.set(3, 3); t.needsUpdate = true; }
     const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.5, map: hC, roughnessMap: hR, normalMap: hN, normalScale: new THREE.Vector2(0.9, 0.9), envMapIntensity: 1.3 }));
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff3c00, emissiveIntensity: 2.2, roughness: 0.2, metalness: 0 });
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x140a04, emissive: 0xff5a1f, emissiveIntensity: 0.3, roughness: 0.15, metalness: 0 });
     const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const ball = new THREE.SphereGeometry(1, 20, 14);
     for (const side of [1, -1]) {
@@ -600,7 +600,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const DOWN = new V(0, -0.5, 0.86).normalize(), REST = new V(), HP = new V(), N1H = new V();
     const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
     /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
-    const radius = (u) => TUBE * (0.05 + 0.95 * Math.pow(smooth(0, 0.06 + 0.26 * (1 - liftAmt), u), 0.75)) * (1 - 0.14 * smooth(0.95, 0.995, u));
+    const radius = (u) => TUBE * (1 - (1 - liftAmt) * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
       const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 1.1 * Math.pow(smooth(0.93, 1, u), 2);
       at(s, P); at(s + 6, Q);
@@ -703,10 +703,10 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         pulseCount++;
       }
 
-      eyeMat.emissiveIntensity = 2.2 + 4 * energy;
+      eyeMat.emissiveIntensity = 0.3 + 5 * energy;
       gemMat.emissiveIntensity = 1.8 + 3.5 * energy;
       gem.rotation.z = t * 0.8;
-      glow.scale.setScalar(0.34 + 1.6 * energy + 0.03 * Math.sin(t * 2));
+      glow.scale.setScalar(0.22 + 1.6 * energy + 0.02 * Math.sin(t * 2));
       const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
       tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
 
