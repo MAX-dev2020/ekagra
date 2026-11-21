@@ -543,7 +543,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const head = new THREE.Group();
     const HL = 0.62;
     const skullW = (x) => 0.47 * (1 - 0.6 * smooth(-0.3, 1, x)) * (1 - 0.42 * smooth(-0.3, -1, x));
-    const skullTop = (x, y, z) => z * 0.22 * (1 - 0.5 * smooth(-0.3, 1, x))
+    const skullTop = (x, y, z) => z * 0.3 * (1 - 0.5 * smooth(-0.3, 1, x))
       + 0.09 * Math.exp(-((x - 0.1) ** 2 / 0.07 + (Math.abs(y) - 0.62) ** 2 / 0.05))
       + 0.03 * Math.exp(-((x - 0.75) ** 2 / 0.02 + (Math.abs(y) - 0.45) ** 2 / 0.06));
     const surfZ = (hx, hy) => { const x = hx / HL, y = hy / skullW(x); return skullTop(x, y, Math.sqrt(Math.max(0, 1 - x * x - y * y))); };
@@ -556,7 +556,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       }
       skullGeo.computeVertexNormals();
     }
-    const HS = TUBE * 2 * 2.1 / 0.94;                 /* head 1.5x as wide as the body */
+    const HS = TUBE * 2 * 3.1 / 0.94;                 /* head 1.5x as wide as the body */
     const hN = SK.n.clone(), hC = SK.c.clone(), hR = SK.r.clone();
     for (const t of [hN, hC, hR]) { t.repeat.set(3, 3); t.needsUpdate = true; }
     const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.5, map: hC, roughnessMap: hR, normalMap: hN, normalScale: new THREE.Vector2(0.9, 0.9), envMapIntensity: 1.3 }));
@@ -566,14 +566,14 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     for (const side of [1, -1]) {
       const ex = 0.27, ey = side * 0.2, ez = surfZ(ex, ey);
       const eye = new THREE.Mesh(ball, eyeMat);
-      eye.position.set(ex, ey, ez - 0.006); eye.scale.set(0.1, 0.045, 0.04); eye.rotation.z = side * -0.55;
+      eye.position.set(ex, ey, ez - 0.004); eye.scale.set(0.12, 0.06, 0.05); eye.rotation.z = side * -0.55;
       const pupil = new THREE.Mesh(ball, pupilMat);
-      pupil.position.set(ex, ey, ez + 0.03); pupil.scale.set(0.085, 0.009, 0.012); pupil.rotation.z = side * -0.55;
+      pupil.position.set(ex, ey, ez + 0.04); pupil.scale.set(0.1, 0.011, 0.014); pupil.rotation.z = side * -0.55;
       head.add(eye, pupil);
     }
     const gemMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.8, metalness: 0.2, roughness: 0.12, flatShading: true });
-    const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 0), gemMat);
-    gem.position.set(-0.1, 0, surfZ(-0.1, 0) + 0.04);
+    const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.075, 0), gemMat);
+    gem.position.set(-0.2, 0, surfZ(-0.2, 0) + 0.03);
     const glowC = document.createElement('canvas'); glowC.width = glowC.height = 128;
     { const g = glowC.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
       gr.addColorStop(0, 'rgba(255,120,50,1)'); gr.addColorStop(0.35, 'rgba(255,90,31,.45)'); gr.addColorStop(1, 'rgba(255,90,31,0)');
@@ -594,12 +594,12 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     world.add(head);
 
     let liftAmt = 1;
-    const DOWN = new V(0, -1, 0.22).normalize(), REST = new V(), HP = new V(), N1H = new V();
+    const DOWN = new V(0, -0.5, 0.86).normalize(), REST = new V(), HP = new V(), N1H = new V();
     const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
     /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
     const radius = (u) => TUBE * (0.05 + 0.95 * Math.pow(smooth(0, 0.06 + 0.26 * (1 - liftAmt), u), 0.75)) * (1 - 0.14 * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
-      const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 0.9 * Math.pow(smooth(0.9, 1, u), 2);
+      const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 1.9 * Math.pow(smooth(0.9, 1, u), 2);
       at(s, P); at(s + 6, Q);
       P.z += lz; Q.z += lz;
       T.subVectors(Q, P).normalize();
@@ -626,7 +626,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       HP.set(P.x + TF.x * 0.4 * HS, P.y + TF.y * 0.4 * HS, P.z + TF.z * 0.4 * HS + 2);
       /* resting pose, as in the logo: head centred on the crossing, pointing straight down */
       TF.lerp(DOWN, 0.92 * liftAmt).normalize();
-      REST.set(XC.x - CX, -(XC.y - 34), ZR + TUBE * 1.25);
+      REST.set(XC.x - CX, -(XC.y - 46), ZR + TUBE * 2.3);
       HP.lerp(REST, liftAmt);
       N1H.crossVectors(TF, Z).normalize();
       UF.crossVectors(N1H, TF);
@@ -694,7 +694,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       eyeMat.emissiveIntensity = 2.2 + 4 * energy;
       gemMat.emissiveIntensity = 1.8 + 3.5 * energy;
       gem.rotation.z = t * 0.8;
-      glow.scale.setScalar(0.26 + 1.3 * energy + 0.03 * Math.sin(t * 2));
+      glow.scale.setScalar(0.13 + 1.1 * energy + 0.015 * Math.sin(t * 2));
       const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
       tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
 
