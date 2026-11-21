@@ -542,63 +542,77 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     body.frustumCulled = false; body.renderOrder = 3;
     world.add(body);
 
-    /* ---------- 7. Head: viper skull, slit eyes, tongue, and the nagamani on its brow ---------- */
+    /* ---------- 7. Head: the logo's own head and gem, lifted from the artwork and embossed in metal ---------- */
+    let gsx = 0, gsy = 0, gn = 0;
+    for (let p = 0, i = 0; p < NP; p++, i += 4) if (d[i + 3] > 235 && d[i] > 180 && d[i + 2] < 120) { gsx += p % TW; gsy += (p / TW) | 0; gn++; }
+    const GX = gsx / gn, GY = gsy / gn;                     /* centre of the gem in the artwork */
+    const HW = 112, HT = 46, HB = 196, KS = 3;              /* crop round the head: half width, above and below the gem; re-drawn at 3x */
+    const hW = HW * 2 * KS, hH = (HT + HB) * KS;
+    const hc = document.createElement('canvas'); hc.width = hW; hc.height = hH;
+    const hx = hc.getContext('2d', { willReadFrequently: true });
+    const fx = img.naturalWidth / TW, fy = img.naturalHeight / TH;
+    hx.drawImage(img, (GX - HW) * fx, (GY - HT) * fy, HW * 2 * fx, (HT + HB) * fy, 0, 0, hW, hH);
+    const hd = hx.getImageData(0, 0, hW, hH).data;
+    /* outline of the head (relative to the gem), traced from the logo */
+    const POLY = [[-80, -8], [-44, -22], [0, -29], [44, -22], [82, -8], [75, 52], [39, 101], [2, 107], [-35, 101], [-73, 52]];
+    const inPoly = (x, y) => { let c = false; for (let i = 0, j = POLY.length - 1; i < POLY.length; j = i++) { const a = POLY[i], b = POLY[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+    const HN = hW * hH, solid = new Float32Array(HN), hink = new Float32Array(HN);
+    const gemI = new ImageData(hW, hH);
+    for (let y = 0; y < hH; y++) for (let x = 0; x < hW; x++) {
+      const p = y * hW + x, i = p * 4, dx = x / KS - HW, dy = y / KS - HT, a = hd[i + 3] / 255;
+      const cream = a * Math.min(1, Math.max(0, (hd[i + 2] - 110) / 90));
+      const inGem = Math.hypot(dx, dy) < 24;
+      const face = inPoly(dx, dy), tongue = Math.abs(dx) < 17 && dy >= 100 && dy < 182;
+      solid[p] = face ? 1 : 0;
+      hink[p] = (face || tongue) && !inGem ? cream : 0;
+      if (inGem && a > 0.9) { gemI.data[i] = hd[i]; gemI.data[i + 1] = hd[i + 1]; gemI.data[i + 2] = hd[i + 2]; gemI.data[i + 3] = 255; }
+    }
+    const blurHead = (srcA, r) => {
+      const tmp = new Float32Array(HN), out = new Float32Array(HN), n = 2 * r + 1;
+      for (let y = 0; y < hH; y++) { let sum = 0; const o = y * hW;
+        for (let x = -r; x <= r; x++) sum += srcA[o + Math.min(hW - 1, Math.max(0, x))];
+        for (let x = 0; x < hW; x++) { tmp[o + x] = sum / n; sum += srcA[o + Math.min(hW - 1, x + r + 1)] - srcA[o + Math.max(0, x - r)]; } }
+      for (let x = 0; x < hW; x++) { let sum = 0;
+        for (let y = -r; y <= r; y++) sum += tmp[Math.min(hH - 1, Math.max(0, y)) * hW + x];
+        for (let y = 0; y < hH; y++) { out[y * hW + x] = sum / n; sum += tmp[Math.min(hH - 1, y + r + 1) * hW + x] - tmp[Math.max(0, y - r) * hW + x]; } }
+      return out;
+    };
+    const edge = blurHead(solid, 3), dome = blurHead(blurHead(solid, 26), 26), fine = blurHead(hink, 2);
+    const plateI = new ImageData(hW, hH), plateN = new ImageData(hW, hH), hh = new Float32Array(HN);
+    for (let p = 0; p < HN; p++) hh[p] = 62 * dome[p] * dome[p] + 5 * fine[p];
+    for (let y = 0; y < hH; y++) for (let x = 0; x < hW; x++) {
+      const p = y * hW + x, i = p * 4;
+      const tone = solid[p] > 0 ? 96 + 159 * Math.min(1, fine[p] * 1.6) : 255;       /* bright drawn lines on darker silver */
+      plateI.data[i] = plateI.data[i + 1] = plateI.data[i + 2] = tone;
+      plateI.data[i + 3] = Math.max(smooth(0.35, 0.65, edge[p]), hink[p]) * 255;
+      const ddx = (hh[y * hW + Math.min(hW - 1, x + 1)] - hh[y * hW + Math.max(0, x - 1)]) / 2;
+      const ddy = (hh[Math.min(hH - 1, y + 1) * hW + x] - hh[Math.max(0, y - 1) * hW + x]) / 2;
+      let nx = -ddx, ny = ddy, nz = 1; const l = Math.hypot(nx, ny, nz);
+      plateN.data[i] = (nx / l * 0.5 + 0.5) * 255; plateN.data[i + 1] = (ny / l * 0.5 + 0.5) * 255; plateN.data[i + 2] = (nz / l * 0.5 + 0.5) * 255; plateN.data[i + 3] = 255;
+    }
+    const toTex = (data, srgb) => { const c = document.createElement('canvas'); c.width = hW; c.height = hH; c.getContext('2d').putImageData(data, 0, 0); return tex(c, srgb); };
     const head = new THREE.Group();
-    const HL = 0.54;
-    const skullW = (x) => 0.47 * (1 - 0.6 * smooth(-0.3, 1, x)) * (1 - 0.42 * smooth(-0.3, -1, x));
-    const skullTop = (x, y, z) => z * 0.3 * (1 - 0.5 * smooth(-0.3, 1, x))
-      + 0.09 * Math.exp(-((x - 0.1) ** 2 / 0.07 + (Math.abs(y) - 0.62) ** 2 / 0.05))
-      + 0.03 * Math.exp(-((x - 0.75) ** 2 / 0.02 + (Math.abs(y) - 0.45) ** 2 / 0.06));
-    const surfZ = (hx, hy) => { const x = hx / HL, y = hy / skullW(x); return skullTop(x, y, Math.sqrt(Math.max(0, 1 - x * x - y * y))); };
-    const skullGeo = new THREE.SphereGeometry(1, 64, 44);
-    {
-      const p = skullGeo.attributes.position;
-      for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-        p.setXYZ(i, x * HL, y * skullW(x), z > 0 ? skullTop(x, y, z) : z * 0.13 * (1 - 0.5 * smooth(-0.3, 1, x)));
-      }
-      skullGeo.computeVertexNormals();
-    }
-    const HS = TUBE * 2 * 1.65 / 0.94;                 /* head 1.5x as wide as the body */
-    const hN = SK.n.clone(), hC = SK.c.clone(), hR = SK.r.clone();
-    for (const t of [hN, hC, hR]) { t.repeat.set(3, 3); t.needsUpdate = true; }
-    const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.5, map: hC, roughnessMap: hR, normalMap: hN, normalScale: new THREE.Vector2(0.9, 0.9), envMapIntensity: 1.3 }));
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x140a04, emissive: 0xff5a1f, emissiveIntensity: 0.3, roughness: 0.15, metalness: 0 });
-    const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    const ball = new THREE.SphereGeometry(1, 20, 14);
-    for (const side of [1, -1]) {
-      const ex = 0.2, ey = side * 0.24, ez = surfZ(ex, ey);
-      const eye = new THREE.Mesh(ball, eyeMat);
-      eye.position.set(ex, ey, ez - 0.004); eye.scale.set(0.14, 0.07, 0.05); eye.rotation.z = side * -0.55;
-      const pupil = new THREE.Mesh(ball, pupilMat);
-      pupil.position.set(ex, ey, ez + 0.04); pupil.scale.set(0.12, 0.014, 0.016); pupil.rotation.z = side * -0.55;
-      head.add(eye, pupil);
-    }
-    const gemMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff4a10, emissiveIntensity: 1.8, metalness: 0.2, roughness: 0.12, flatShading: true });
-    const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.125, 0), gemMat);
-    gem.position.set(-0.36, 0, surfZ(-0.36, 0) + 0.09);
+    const PIV = 46;                                          /* the head turns about a point just below the gem */
+    const plateGeo = new THREE.PlaneGeometry(HW * 2, HT + HB);
+    const plateMap = toTex(plateI, true);
+    const plate = new THREE.Mesh(plateGeo, new THREE.MeshStandardMaterial({ map: plateMap, normalMap: toTex(plateN, false), transparent: true, depthWrite: false, metalness: 0.9, roughness: 0.26, envMapIntensity: 1.7, emissive: 0xffffff, emissiveMap: plateMap, emissiveIntensity: 0.2 }));
+    const gemMat = new THREE.MeshBasicMaterial({ map: toTex(gemI, true), transparent: true, depthWrite: false, toneMapped: false });
+    const gemPlane = new THREE.Mesh(plateGeo, gemMat);
+    plate.position.y = gemPlane.position.y = -((HB - HT) / 2 - PIV);
+    gemPlane.position.z = 2;
+    plate.renderOrder = 5; gemPlane.renderOrder = 6;
     const glowC = document.createElement('canvas'); glowC.width = glowC.height = 128;
     { const g = glowC.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-      gr.addColorStop(0, 'rgba(255,120,50,1)'); gr.addColorStop(0.35, 'rgba(255,90,31,.45)'); gr.addColorStop(1, 'rgba(255,90,31,0)');
+      gr.addColorStop(0, 'rgba(255,120,50,.9)'); gr.addColorStop(0.35, 'rgba(255,90,31,.38)'); gr.addColorStop(1, 'rgba(255,90,31,0)');
       g.fillStyle = gr; g.fillRect(0, 0, 128, 128); }
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(glowC, true), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }));
-    glow.position.copy(gem.position); glow.renderOrder = 6;
-    const tongue = new THREE.Group();
-    const tongueMat = new THREE.MeshStandardMaterial({ color: 0x7a1206, emissive: 0x4a0a02, roughness: 0.5, metalness: 0 });
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 0.3, 8), tongueMat);
-    stem.rotation.z = Math.PI / 2; stem.position.x = 0.15; tongue.add(stem);
-    for (const side of [1, -1]) {
-      const prong = new THREE.Mesh(new THREE.ConeGeometry(0.013, 0.2, 8), tongueMat);
-      prong.rotation.z = -Math.PI / 2 + side * 0.4; prong.position.set(0.38, side * 0.035, 0); tongue.add(prong);
-    }
-    tongue.position.set(HL - 0.06, 0, -0.01);
-    head.add(skull, gem, glow, tongue);
-    head.matrixAutoUpdate = false; head.renderOrder = 4;
+    glow.position.set(0, PIV, 1); glow.renderOrder = 4;
+    head.add(glow, plate, gemPlane);
     world.add(head);
 
     let liftAmt = 1;
-    const DOWN = new V(0, -0.5, 0.86).normalize(), REST = new V(), HP = new V(), N1H = new V();
-    const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
+    const REST = new V(), HP = new V();
+    const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1);
     /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
     const radius = (u) => TUBE * (1 - (1 - liftAmt) * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * (1 - liftAmt) * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
@@ -623,18 +637,13 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       }
       geo.attributes.position.needsUpdate = true;
       geo.attributes.normal.needsUpdate = true;
+      /* at rest the head sits exactly where the logo has it; as it crawls it swings round to lead the body */
       frameAt(sHead, 1);
-      const pitch = 0.22 * liftAmt + 0.2 * energy;
-      TF.copy(T).multiplyScalar(Math.cos(pitch)).addScaledVector(N2, Math.sin(pitch));
-      HP.set(P.x + TF.x * 0.4 * HS, P.y + TF.y * 0.4 * HS, P.z + TF.z * 0.4 * HS + 2);
-      /* resting pose, as in the logo: head centred on the crossing, pointing straight down */
-      TF.lerp(DOWN, 0.92 * liftAmt).normalize();
-      REST.set(XC.x - CX, -(XC.y - 30), ZR + TUBE * 1.5);
+      HP.set(P.x + T.x * 30, P.y + T.y * 30, P.z + TUBE * 1.06);
+      REST.set(GX - CX, -(GY + PIV), ZR + TUBE * 1.12);
       HP.lerp(REST, liftAmt);
-      N1H.crossVectors(TF, Z).normalize();
-      UF.crossVectors(N1H, TF);
-      M.makeBasis(TF, N1H, UF).scale(HSV).setPosition(HP.x, HP.y, HP.z);
-      head.matrix.copy(M);
+      head.position.copy(HP);
+      head.rotation.z = Math.atan2(T.x, -T.y) * (1 - liftAmt);
     }
 
     /* ---------- 8. Layout, scroll and animation ---------- */
@@ -703,12 +712,8 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         pulseCount++;
       }
 
-      eyeMat.emissiveIntensity = 0.3 + 5 * energy;
-      gemMat.emissiveIntensity = 1.8 + 3.5 * energy;
-      gem.rotation.z = t * 0.8;
-      glow.scale.setScalar(0.22 + 1.6 * energy + 0.02 * Math.sin(t * 2));
-      const flick = Math.pow(Math.max(0, Math.sin(t * (1.1 + 5 * energy))), 6);
-      tongue.scale.set(reduce ? 0.8 : 0.15 + 0.85 * flick, 1, 1);
+      gemMat.color.setScalar(1 + 1.6 * energy);
+      glow.scale.setScalar(95 + 260 * energy + 6 * Math.sin(t * 2));
 
       if (cur !== builtS || energy !== builtE || liftAmt !== builtL) { build(beltLen + cur, energy); builtS = cur; builtE = energy; builtL = liftAmt; }
       drawWaves(t);
