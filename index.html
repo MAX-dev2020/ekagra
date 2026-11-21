@@ -406,7 +406,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         const L = speakers[w.spk].L, r0 = L.rIn * 0.55, r1 = (L.rc + L.hw) * 1.85;
         const e = reduce ? 0.5 : 1 - Math.pow(1 - k, 2);
         w.m.scale.setScalar(r0 + (r1 - r0) * e);
-        w.m.material.opacity = smooth(0, 0.22, k) * (1 - smooth(0.3, 1, k)) * (0.08 + 0.12 * w.hot);
+        w.m.material.opacity = smooth(0, 0.22, k) * (1 - smooth(0.3, 1, k)) * (0.045 + 0.12 * w.hot);
       }
       for (const s of speakers) {
         const q = Math.min(1, Math.max(0, (t - s.pump) / 0.55));
@@ -598,7 +598,23 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const plateGeo = new THREE.PlaneGeometry(HW * 2, HT + HB);
     const plateMap = toTex(plateI, true);
     const plate = new THREE.Mesh(plateGeo, new THREE.MeshStandardMaterial({ map: plateMap, normalMap: toTex(plateN, false), transparent: true, depthWrite: false, metalness: 0.9, roughness: 0.26, envMapIntensity: 1.7, emissive: 0xffffff, emissiveMap: plateMap, emissiveIntensity: 0.2 }));
-    const gemMat = new THREE.MeshBasicMaterial({ map: toTex(gemI, true), transparent: true, depthWrite: false, toneMapped: false });
+    const gemC = document.createElement('canvas'); gemC.width = hW; gemC.height = hH;
+    const gx = gemC.getContext('2d');
+    gx.putImageData(gemI, 0, 0);
+    for (const side of [-1, 1]) {
+      gx.save();
+      gx.translate((HW + side * 52) * KS, (HT + 43) * KS);
+      gx.rotate(side * 0.42);                                 /* outer corners tilted up, as drawn in the logo */
+      const halo = gx.createRadialGradient(0, 0, 0, 0, 0, 17 * KS);
+      halo.addColorStop(0, 'rgba(255,120,40,.55)'); halo.addColorStop(1, 'rgba(255,120,40,0)');
+      gx.fillStyle = halo; gx.beginPath(); gx.arc(0, 0, 17 * KS, 0, Math.PI * 2); gx.fill();
+      const iris = gx.createRadialGradient(0, 0, 0, 0, 0, 11 * KS);
+      iris.addColorStop(0, '#ffe2a6'); iris.addColorStop(0.45, '#ffa23a'); iris.addColorStop(1, '#e2500f');
+      gx.fillStyle = iris; gx.beginPath(); gx.ellipse(0, 0, 11 * KS, 5.6 * KS, 0, 0, Math.PI * 2); gx.fill();
+      gx.fillStyle = '#080402'; gx.beginPath(); gx.ellipse(0, 0, 1.7 * KS, 5.2 * KS, 0, 0, Math.PI * 2); gx.fill();   /* slit pupil */
+      gx.restore();
+    }
+    const gemMat = new THREE.MeshBasicMaterial({ map: tex(gemC, true), transparent: true, depthWrite: false, toneMapped: false });
     const gemPlane = new THREE.Mesh(plateGeo, gemMat);
     plate.position.y = gemPlane.position.y = -((HB - HT) / 2 - PIV);
     gemPlane.position.z = 2;
@@ -707,11 +723,11 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
 
       /* sound waves from the speakers: slow breathing when idle, a fast burst after a tap */
       const bursting = t < burstUntil;
-      if (bursting && t >= nextPulse) {
-        const hot = Math.max(0.35, energy);
+      if (t >= nextPulse && (bursting || !reduce)) {
+        const hot = bursting ? Math.max(0.35, energy) : 0;
         pulse(t, 0, hot);
-        pulse(t + (bursting ? 0.14 : 0.35), 1, hot);
-        nextPulse = t + (bursting ? 0.5 : 2.6);
+        pulse(t + (bursting ? 0.14 : 0.5), 1, hot);
+        nextPulse = t + (bursting ? 0.55 : 3.4);
         pulseCount++;
       }
 
