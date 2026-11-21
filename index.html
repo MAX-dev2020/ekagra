@@ -307,31 +307,29 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const rTop = CX - topMin;
     const L2 = findRing(maxY - rBot, 1, rBot), L1 = findRing(minY + rTop, -1, rTop);   /* L1 top, L2 bottom */
 
-    /* speaker rings only (everything inside each loop), as relief */
-    const spkC = mk(), nrmC = mk(), spkI = new ImageData(TW, TH), nrmI = new ImageData(TW, TH);
-    const sInk = new Float32Array(NP);
-    for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
-      const p = y * TW + x;
-      const inside = Math.hypot(x - CX, y - L1.cy) < L1.rIn - 3 || Math.hypot(x - CX, y - L2.cy) < L2.rIn - 3;
-      sInk[p] = inside ? ink[p] : 0;
-    }
-    const sH = blur(blur(sInk, 2), 2);
-    for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
-      const p = y * TW + x, i = p * 4;
-      spkI.data[i] = spkI.data[i + 1] = spkI.data[i + 2] = 255; spkI.data[i + 3] = sInk[p] * 255;
-      const dx = (sH[y * TW + Math.min(TW - 1, x + 1)] - sH[y * TW + Math.max(0, x - 1)]) * 3.5;
-      const dy = (sH[Math.min(TH - 1, y + 1) * TW + x] - sH[Math.max(0, y - 1) * TW + x]) * 3.5;
-      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz);
-      nrmI.data[i] = (nx / l * 0.5 + 0.5) * 255; nrmI.data[i + 1] = (ny / l * 0.5 + 0.5) * 255; nrmI.data[i + 2] = (nz / l * 0.5 + 0.5) * 255; nrmI.data[i + 3] = 255;
-    }
-    spkC.getContext('2d').putImageData(spkI, 0, 0);
-    nrmC.getContext('2d').putImageData(nrmI, 0, 0);
+    /* measure every speaker ring in the logo (radius and thickness) so they can be rebuilt as real metal rings */
+    const findRings = (L) => {
+      const Rmax = L.rIn - 3, prof = [];
+      for (let r = 0; r < Rmax; r++) { let sum = 0, n = 0; for (let a = 0; a < 360; a += 2) { const t = a * Math.PI / 180; sum += inkAt(CX + Math.cos(t) * r, L.cy + Math.sin(t) * r); n++; } prof.push(sum / n); }
+      const rings = [];
+      for (let r = 2; r < Rmax - 1; r++) {
+        const v = prof[r];
+        if (v < 0.07 || v < prof[r - 1] || v <= prof[r + 1]) continue;          /* keep true peaks only */
+        let lo = r, hi = r;
+        while (lo > 0 && prof[lo - 1] > v * 0.5) lo--;
+        while (hi < Rmax - 1 && prof[hi + 1] > v * 0.5) hi++;
+        const last = rings[rings.length - 1];
+        if (last && r - last.r < 3) continue;
+        rings.push({ r: (lo + hi) / 2, w: Math.min(11, hi - lo + 1) });
+      }
+      return rings;
+    };
 
     /* ---------- 2. Renderer, studio reflections ---------- */
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, coarse ? 1.5 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 0.74;
     const tex = (c, srgb) => { const t = new THREE.CanvasTexture(c); t.anisotropy = renderer.capabilities.getMaxAnisotropy(); if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; };
 
     const studio = new THREE.Scene();
@@ -343,8 +341,12 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     light(14, 1.6, 0, 7, 5, 14, 14, 14);
     light(1.6, 14, -8, 0, 4, 9, 9, 10);
     light(1.6, 14, 8, 1, 3, 6, 6, 6.5);
-    light(9, 9, 0, 0, 10, 0.4, 0.4, 0.43);
+    light(9, 9, 0, 0, 10, 0.22, 0.22, 0.24);
     light(3, 3, 6, -6, 5, 7, 2.6, 0.7);
+    light(10, 5, 0, 9, -2, 3, 3, 3.3);          /* broad top softbox */
+    light(0.7, 12, -4, 0, 7, 5, 5, 5.5);        /* thin front-left strip: a crisp line along the body */
+    light(0.7, 12, 5, 0, 7, 3, 3, 3.3);
+    light(4, 2, -7, -5, 4, 5.5, 4.2, 2.6);      /* champagne under-glow */
     const scene = new THREE.Scene();
     scene.environment = new THREE.PMREMGenerator(renderer).fromScene(studio, 0.02).texture;
     const FOV = 26, TAN = Math.tan(FOV / 2 * Math.PI / 180);
@@ -355,16 +357,20 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     pivot.position.set(0, -TH / 2, 0); world.position.set(0, TH / 2, 0);
     pivot.add(world); scene.add(pivot);
 
-    /* ---------- 3. Speakers: the logo's own rings ---------- */
-    const spkTex = tex(spkC, true), nrmTex = tex(nrmC, false);
-    const spkMat = new THREE.MeshStandardMaterial({ map: spkTex, normalMap: nrmTex, transparent: true, depthWrite: false, metalness: 1, roughness: 0.18, color: 0xf0f1f4 });
+    /* ---------- 3. Speakers: the logo's own rings, as polished metal over a black lacquer cone ---------- */
+    const ringMat = new THREE.MeshStandardMaterial({ color: 0xdfe0e4, metalness: 1, roughness: 0.08 });
+    const coneMat = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, metalness: 1, roughness: 0.32 });
     const speakers = [L2, L1].map((L) => {
-      const R = L.rIn - 3, g = new THREE.CircleGeometry(R, 96), p = g.attributes.position, uv = g.attributes.uv;
-      for (let i = 0; i < p.count; i++) uv.setXY(i, (CX + p.getX(i)) / TW, 1 - (L.cy - p.getY(i)) / TH);
-      const m = new THREE.Mesh(g, spkMat);
-      m.position.set(0, -L.cy, -30); m.renderOrder = 2;
-      world.add(m);
-      return { mesh: m, L, pump: -99 };
+      const g = new THREE.Group();
+      const cone = new THREE.Mesh(new THREE.CircleGeometry(L.rIn - 2, 128), coneMat);
+      cone.position.z = -8; g.add(cone);
+      for (const ring of findRings(L)) {
+        const m = new THREE.Mesh(new THREE.TorusGeometry(ring.r, Math.max(1.3, ring.w * 0.45), 14, 220), ringMat);
+        m.scale.z = 0.8; g.add(m);
+      }
+      g.position.set(0, -L.cy, -30);
+      world.add(g);
+      return { mesh: g, L, pump: -99 };
     });
 
     /* ---------- 4. Sound waves: clean rings pushed out by each speaker ---------- */
@@ -479,37 +485,44 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     };
 
     /* ---------- 6. Snake body ---------- */
-    const scaleTex = (() => {
-      const c = document.createElement('canvas'); c.width = c.height = 512;
-      const g = c.getContext('2d'), cw = 128, ch = 512 / 6;
-      g.fillStyle = '#555'; g.fillRect(0, 0, 512, 512);
-      for (let r = -1; r <= 13; r++) for (let q = -1; q <= 5; q++) {
-        const x = (q + (r & 1) * 0.5) * cw, y = r * ch / 2;
-        const grad = g.createLinearGradient(x - cw / 2, y, x + cw / 2, y);
-        grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#3a3a3a');
-        g.beginPath(); g.moveTo(x - cw / 2, y); g.lineTo(x, y - ch / 2); g.lineTo(x + cw / 2, y); g.lineTo(x, y + ch / 2); g.closePath();
-        g.fillStyle = grad; g.fill(); g.strokeStyle = '#111'; g.lineWidth = 5; g.stroke();
+    const SK = (() => {
+      const S = 512, cols = 4, rows = 6, cw = S / cols, ch = S / rows;
+      const H = new Float32Array(S * S);
+      for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+        let best = 9, bdx = 0;
+        const r0 = Math.round(y / (ch / 2));
+        for (let r = r0 - 1; r <= r0 + 1; r++) {
+          const off = (r & 1) * 0.5, q0 = Math.round(x / cw - off);
+          for (let q = q0 - 1; q <= q0 + 1; q++) {
+            const dx = (x - (q + off) * cw) / (cw / 2), dy = (y - r * ch / 2) / (ch / 2), m = Math.abs(dx) + Math.abs(dy);
+            if (m < best) { best = m; bdx = dx; }
+          }
+        }
+        H[y * S + x] = Math.pow(Math.max(0, 1 - best), 0.5) * (0.7 + 0.3 * bdx);   /* domed, leaning back over the next scale */
       }
-      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.anisotropy = 8;
-      return t;
-    })();
-    /* faint dark lattice lines between scales, like the logo's crosshatch: no blotches */
-    const latticeTex = (() => {
-      const c = document.createElement('canvas'); c.width = c.height = 512;
-      const g = c.getContext('2d'), cw = 128, ch = 512 / 6;
-      g.fillStyle = '#ffffff'; g.fillRect(0, 0, 512, 512);
-      g.strokeStyle = '#8f9095'; g.lineWidth = 5;
-      for (let r = -1; r <= 13; r++) for (let q = -1; q <= 5; q++) {
-        const x = (q + (r & 1) * 0.5) * cw, y = r * ch / 2;
-        g.beginPath(); g.moveTo(x - cw / 2, y); g.lineTo(x, y - ch / 2); g.lineTo(x + cw / 2, y); g.lineTo(x, y + ch / 2); g.closePath(); g.stroke();
+      const mkc = () => { const c = document.createElement('canvas'); c.width = c.height = S; return c; };
+      const nC = mkc(), cC = mkc(), rC = mkc();
+      const nI = new ImageData(S, S), cI = new ImageData(S, S), rI = new ImageData(S, S);
+      const w = (v) => (v + S) % S;
+      for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+        const i = (y * S + x) * 4, hh = H[y * S + x];
+        let nx = -(H[y * S + w(x + 1)] - H[y * S + w(x - 1)]) * 11, ny = -(H[w(y + 1) * S + x] - H[w(y - 1) * S + x]) * 11, nz = 1;
+        const l = Math.hypot(nx, ny, nz);
+        nI.data[i] = (nx / l * 0.5 + 0.5) * 255; nI.data[i + 1] = (ny / l * 0.5 + 0.5) * 255; nI.data[i + 2] = (nz / l * 0.5 + 0.5) * 255; nI.data[i + 3] = 255;
+        const plate = smooth(0.02, 0.3, hh);
+        const tone = 46 + 205 * plate;                                             /* dark seams, bright plates */
+        cI.data[i] = tone; cI.data[i + 1] = tone; cI.data[i + 2] = Math.min(255, tone * 1.02); cI.data[i + 3] = 255;
+        const rough = 255 - 185 * plate;                                           /* seams matte, plates mirror */
+        rI.data[i] = rI.data[i + 1] = rI.data[i + 2] = rough; rI.data[i + 3] = 255;
       }
-      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.anisotropy = 8; t.colorSpace = THREE.SRGBColorSpace;
-      return t;
+      nC.getContext('2d').putImageData(nI, 0, 0); cC.getContext('2d').putImageData(cI, 0, 0); rC.getContext('2d').putImageData(rI, 0, 0);
+      const t = (c, srgb) => { const x = new THREE.CanvasTexture(c); x.wrapS = x.wrapT = THREE.RepeatWrapping; x.flipY = false; x.anisotropy = renderer.capabilities.getMaxAnisotropy(); if (srgb) x.colorSpace = THREE.SRGBColorSpace; return x; };
+      return { n: t(nC, false), c: t(cC, true), r: t(rC, false) };
     })();
-    const BUMP = TUBE * 0.16;
-    const skin = new THREE.MeshStandardMaterial({ color: 0xf2f3f5, metalness: 1, roughness: 0.13, map: latticeTex, bumpMap: scaleTex, bumpScale: BUMP });
+    const skinOpts = { color: 0xffffff, metalness: 1, roughness: 0.5, map: SK.c, roughnessMap: SK.r, normalMap: SK.n, normalScale: new THREE.Vector2(1.15, 1.15), envMapIntensity: 1.3 };
+    const skin = coarse ? new THREE.MeshStandardMaterial(skinOpts) : new THREE.MeshPhysicalMaterial({ ...skinOpts, clearcoat: 0.7, clearcoatRoughness: 0.12 });
 
-    const N = coarse ? 300 : 420, R = coarse ? 14 : 18;
+    const N = coarse ? 320 : 640, R = coarse ? 16 : 28;
     const pos = new Float32Array(N * (R + 1) * 3), nor = new Float32Array(N * (R + 1) * 3), uv = new Float32Array(N * (R + 1) * 2);
     const idx = [];
     for (let i = 0; i < N; i++) for (let j = 0; j <= R; j++) {
@@ -543,9 +556,10 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       }
       skullGeo.computeVertexNormals();
     }
-    const HS = TUBE * 2 * 1.9 / 0.94;                 /* head 1.5x as wide as the body */
-    const headTex = scaleTex.clone(); headTex.repeat.set(4, 3); headTex.needsUpdate = true;
-    const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xe6e7ea, metalness: 1, roughness: 0.17, bumpMap: headTex, bumpScale: BUMP * 1.4 / HS }));
+    const HS = TUBE * 2 * 2.1 / 0.94;                 /* head 1.5x as wide as the body */
+    const hN = SK.n.clone(), hC = SK.c.clone(), hR = SK.r.clone();
+    for (const t of [hN, hC, hR]) { t.repeat.set(3, 3); t.needsUpdate = true; }
+    const skull = new THREE.Mesh(skullGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.5, map: hC, roughnessMap: hR, normalMap: hN, normalScale: new THREE.Vector2(0.9, 0.9), envMapIntensity: 1.3 }));
     const eyeMat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, emissive: 0xff3c00, emissiveIntensity: 2.2, roughness: 0.2, metalness: 0 });
     const pupilMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const ball = new THREE.SphereGeometry(1, 20, 14);
@@ -580,7 +594,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     world.add(head);
 
     const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
-    const radius = (u) => TUBE * (0.14 + 0.86 * Math.pow(smooth(0, 0.2, u), 0.7)) * (1 - 0.1 * smooth(0.94, 0.99, u));
+    const radius = (u) => TUBE * (0.05 + 0.95 * Math.pow(smooth(0, 0.3, u), 0.75)) * (1 - 0.14 * smooth(0.95, 0.995, u));
     let liftAmt = 1;
     const frameAt = (sHead, u) => {
       const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 0.9 * Math.pow(smooth(0.9, 1, u), 2);
@@ -618,8 +632,8 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       renderer.setSize(innerWidth, VH(), false);
       camera.aspect = innerWidth / VH();
       buildPath();
-      scaleTex.repeat.set(Math.round(bodyLen / (2 * Math.PI * TUBE / 6) / 4), 1);
-      latticeTex.repeat.copy(scaleTex.repeat);
+      const reps = Math.round(bodyLen / (2 * Math.PI * TUBE / 6) / 4);
+      SK.n.repeat.set(reps, 1); SK.c.repeat.set(reps, 1); SK.r.repeat.set(reps, 1);
       camera.position.z = VH() * artPerPx / (2 * TAN);
       camera.near = camera.position.z * 0.05; camera.far = camera.position.z * 4;
       camera.updateProjectionMatrix();
