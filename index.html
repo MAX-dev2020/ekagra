@@ -362,8 +362,6 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const coneMat = new THREE.MeshStandardMaterial({ color: 0x0b0b0c, metalness: 1, roughness: 0.32 });
     const speakers = [L2, L1].map((L) => {
       const g = new THREE.Group();
-      const cone = new THREE.Mesh(new THREE.CircleGeometry(L.rIn - 2, 128), coneMat);
-      cone.position.z = -8; g.add(cone);
       for (const ring of findRings(L)) {
         if (ring.r > L.rIn - 20) continue;                  /* skip a ring that would sit right against the body and read as a second tube */
         const m = new THREE.Mesh(new THREE.TorusGeometry(ring.r, Math.min(2.6, Math.max(0.85, ring.w * 0.2)), 10, 220), ringMat);
