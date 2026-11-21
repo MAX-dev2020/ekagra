@@ -471,7 +471,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       }
       beltLen = cum[belt.length - 1];
       exitLen = cum[exitIndex];                 /* how far the head travels round the coil before it leaves it */
-      bodyLen = beltLen * 1.0;
+      bodyLen = beltLen + TUBE * 2;                  /* a little extra, so the tail end tucks inside the neck instead of meeting it edge to edge */
       extStart = Math.round(beltLen / DS);
       extY = []; for (let i = extStart; i < E.length; i++) extY.push(-E[i].y);
     }
@@ -579,18 +579,12 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         for (let y = 0; y < hH; y++) { out[y * hW + x] = sum / n; sum += tmp[Math.min(hH - 1, y + r + 1) * hW + x] - tmp[Math.max(0, y - r) * hW + x]; } }
       return out;
     };
-    /* fit the metal backing to the drawn head itself, so no plain rim shows round it */
-    const dens = blurHead(blurHead(hink, 8), 8);
-    for (let y = 0; y < hH; y++) for (let x = 0; x < hW; x++) {
-      const p = y * hW + x, inGem = Math.hypot(x / KS - HW, y / KS - HT) < 24;
-      if (solid[p] && !inGem && dens[p] < 0.2) solid[p] = 0;
-    }
     const edge = blurHead(solid, 3), dome = blurHead(blurHead(solid, 26), 26), fine = blurHead(hink, 2);
     const plateI = new ImageData(hW, hH), plateN = new ImageData(hW, hH), hh = new Float32Array(HN);
     for (let p = 0; p < HN; p++) hh[p] = 62 * dome[p] * dome[p] + 5 * fine[p];
     for (let y = 0; y < hH; y++) for (let x = 0; x < hW; x++) {
       const p = y * hW + x, i = p * 4;
-      const tone = solid[p] > 0 ? 150 + 105 * Math.min(1, fine[p] * 1.6) : 255;       /* bright drawn lines on darker silver */
+      const tone = solid[p] > 0 ? 96 + 159 * Math.min(1, fine[p] * 1.6) : 255;       /* bright drawn lines on darker silver */
       plateI.data[i] = plateI.data[i + 1] = plateI.data[i + 2] = tone;
       plateI.data[i + 3] = Math.max(smooth(0.35, 0.65, edge[p]), hink[p]) * 255;
       const ddx = (hh[y * hW + Math.min(hW - 1, x + 1)] - hh[y * hW + Math.max(0, x - 1)]) / 2;
@@ -638,7 +632,9 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const REST = new V(), HP = new V();
     const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1);
     /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
-    const radius = (u) => TUBE * (1 - taperAmt * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * (1 - liftAmt) * smooth(0.95, 0.995, u));
+    const capU = () => TUBE * 2.2 / bodyLen;
+    /* the very end of the tail closes to a point, hidden inside the neck, so no open tube end can show */
+    const radius = (u) => (u < capU() ? 0.95 * smooth(0, capU(), u) : 1) * TUBE * (1 - taperAmt * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * (1 - liftAmt) * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
       const s = sHead - bodyLen * (1 - u), lz = 0;
       at(s, P); at(s + 6, Q);
