@@ -36,6 +36,8 @@
   header nav { display: flex; gap: 2.2rem; }
   header a { font-family: var(--wide); font-size: .6rem; letter-spacing: .34em; text-transform: uppercase; color: var(--muted); padding: .6rem 0; }
   header a:hover { color: var(--text); }
+  header a.cta { color: var(--text); padding: .6rem 1.15rem .6rem 1.4rem; border: 1px solid rgba(205,187,149,.65); border-radius: 999px; transition: background-color .3s, color .3s, border-color .3s; }
+  header a.cta:hover { background: var(--champ); border-color: var(--champ); color: #111; }
   .brand { display: inline-flex; align-items: center; gap: 1rem; color: var(--text); }
   .brand img { height: 3rem; width: auto; }
 
@@ -171,7 +173,7 @@
 <header>
   <div class="wrap">
     <a class="brand" href="#top" aria-label="ekagra.808 home"><img src="assets/symbol-cream.svg" width="904" height="1450" alt=""><span>Ekagra 808</span></a>
-    <nav aria-label="Sections"><a href="#about">About</a><a href="#song">Music</a><a href="#listen">Follow</a></nav>
+    <nav aria-label="Sections"><a href="#about">About</a><a href="#song">Music</a><a class="cta" href="#listen">Follow</a></nav>
   </div>
 </header>
 
