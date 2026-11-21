@@ -470,6 +470,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         E.push(new V(a[0] + (b[0] - a[0]) * t - CX, -(a[1] + (b[1] - a[1]) * t), a[2] + (b[2] - a[2]) * t));
       }
       beltLen = cum[belt.length - 1];
+      exitLen = cum[exitIndex];                 /* how far the head travels round the coil before it leaves it */
       bodyLen = beltLen * 1.0;
       extStart = Math.round(beltLen / DS);
       extY = []; for (let i = extStart; i < E.length; i++) extY.push(-E[i].y);
@@ -611,11 +612,11 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     head.add(glow, plate, gemPlane);
     world.add(head);
 
-    let liftAmt = 1;
+    let liftAmt = 1, taperAmt = 0, exitLen = 0;
     const REST = new V(), HP = new V();
     const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1);
     /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
-    const radius = (u) => TUBE * (1 - (1 - liftAmt) * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * (1 - liftAmt) * smooth(0.95, 0.995, u));
+    const radius = (u) => TUBE * (1 - taperAmt * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * (1 - liftAmt) * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
       const s = sHead - bodyLen * (1 - u), lz = 0;
       at(s, P); at(s + 6, Q);
@@ -698,6 +699,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       cur += Math.max(-dMax * 2.5, Math.min(dMax, (target - cur) * (1 - Math.exp(-dt * 3))));
       if (Math.abs(target - cur) < 0.05) cur = target;
       liftAmt = 1 - smooth(0, 760, cur);
+      taperAmt = smooth(exitLen * 0.9, exitLen + 700, cur);   /* the tail only thins once the head is clear of the coil */
 
       const calm = Math.max(0, 1 - sy / (vh * 0.6));
       pivot.rotation.y = reduce ? 0 : calm * (px * 0.5 + Math.sin(t * 0.5) * 0.12) + (1 - Math.pow(1 - Math.min(1, t / 2.6), 4) - 1) * 1.2 * calm;
