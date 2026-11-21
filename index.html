@@ -600,9 +600,9 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     const DOWN = new V(0, -0.5, 0.86).normalize(), REST = new V(), HP = new V(), N1H = new V();
     const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
     /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
-    const radius = (u) => TUBE * (1 - (1 - liftAmt) * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * smooth(0.95, 0.995, u));
+    const radius = (u) => TUBE * (1 - (1 - liftAmt) * (0.95 - 0.95 * Math.pow(smooth(0, 0.3, u), 0.75))) * (1 - 0.14 * (1 - liftAmt) * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
-      const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 1.1 * Math.pow(smooth(0.93, 1, u), 2);
+      const s = sHead - bodyLen * (1 - u), lz = 0;
       at(s, P); at(s + 6, Q);
       P.z += lz; Q.z += lz;
       T.subVectors(Q, P).normalize();
