@@ -468,7 +468,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         E.push(new V(a[0] + (b[0] - a[0]) * t - CX, -(a[1] + (b[1] - a[1]) * t), a[2] + (b[2] - a[2]) * t));
       }
       beltLen = cum[belt.length - 1];
-      bodyLen = beltLen * 0.93;
+      bodyLen = beltLen * 1.0;
       extStart = Math.round(beltLen / DS);
       extY = []; for (let i = extStart; i < E.length; i++) extY.push(-E[i].y);
     }
@@ -593,9 +593,11 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     head.matrixAutoUpdate = false; head.renderOrder = 4;
     world.add(head);
 
-    const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
-    const radius = (u) => TUBE * (0.05 + 0.95 * Math.pow(smooth(0, 0.3, u), 0.75)) * (1 - 0.14 * smooth(0.95, 0.995, u));
     let liftAmt = 1;
+    const DOWN = new V(0, -1, 0.22).normalize(), REST = new V(), HP = new V(), N1H = new V();
+    const P = new V(), Q = new V(), T = new V(), N1 = new V(), N2 = new V(), Z = new V(0, 0, 1), M = new THREE.Matrix4(), TF = new V(), UF = new V(), HSV = new V(HS, HS, HS);
+    /* at rest the tail is short and hidden under the head; once it crawls it draws out into a long taper */
+    const radius = (u) => TUBE * (0.05 + 0.95 * Math.pow(smooth(0, 0.06 + 0.26 * (1 - liftAmt), u), 0.75)) * (1 - 0.14 * smooth(0.95, 0.995, u));
     const frameAt = (sHead, u) => {
       const s = sHead - bodyLen * (1 - u), lz = liftAmt * TUBE * 0.9 * Math.pow(smooth(0.9, 1, u), 2);
       at(s, P); at(s + 6, Q);
@@ -621,8 +623,14 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       frameAt(sHead, 1);
       const pitch = 0.22 * liftAmt + 0.2 * energy;
       TF.copy(T).multiplyScalar(Math.cos(pitch)).addScaledVector(N2, Math.sin(pitch));
-      UF.copy(N2).multiplyScalar(Math.cos(pitch)).addScaledVector(T, -Math.sin(pitch));
-      M.makeBasis(TF, N1, UF).scale(HSV).setPosition(P.x + TF.x * 0.4 * HS, P.y + TF.y * 0.4 * HS, P.z + TF.z * 0.4 * HS + 2);
+      HP.set(P.x + TF.x * 0.4 * HS, P.y + TF.y * 0.4 * HS, P.z + TF.z * 0.4 * HS + 2);
+      /* resting pose, as in the logo: head centred on the crossing, pointing straight down */
+      TF.lerp(DOWN, 0.92 * liftAmt).normalize();
+      REST.set(XC.x - CX, -(XC.y - 34), ZR + TUBE * 1.25);
+      HP.lerp(REST, liftAmt);
+      N1H.crossVectors(TF, Z).normalize();
+      UF.crossVectors(N1H, TF);
+      M.makeBasis(TF, N1H, UF).scale(HSV).setPosition(HP.x, HP.y, HP.z);
       head.matrix.copy(M);
     }
 
@@ -675,8 +683,8 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
 
       /* sound waves from the speakers: slow breathing when idle, a fast burst after a tap */
       const bursting = t < burstUntil;
-      if (t >= nextPulse && (!reduce || bursting)) {
-        const hot = bursting ? Math.max(0.35, energy) : 0;
+      if (bursting && t >= nextPulse) {
+        const hot = Math.max(0.35, energy);
         pulse(t, 0, hot);
         pulse(t + (bursting ? 0.14 : 0.35), 1, hot);
         nextPulse = t + (bursting ? 0.5 : 2.6);
