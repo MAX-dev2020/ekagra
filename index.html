@@ -375,7 +375,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
     /* ---------- 4. Sound waves: clean rings pushed out by each speaker ---------- */
     const softC = document.createElement('canvas'); softC.width = softC.height = 512;
     { const g = softC.getContext('2d'), gr = g.createRadialGradient(256, 256, 0, 256, 256, 256);
-      gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.78, 'rgba(255,255,255,0)'); gr.addColorStop(0.93, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.84, 'rgba(255,255,255,0)'); gr.addColorStop(0.95, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
       g.fillStyle = gr; g.fillRect(0, 0, 512, 512); }
     const softTex = tex(softC, true);
     const waveGeo = new THREE.PlaneGeometry(2, 2);
@@ -404,7 +404,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         const L = speakers[w.spk].L, r0 = L.rIn * 0.55, r1 = (L.rc + L.hw) * 1.85;
         const e = reduce ? 0.5 : 1 - Math.pow(1 - k, 2);
         w.m.scale.setScalar(r0 + (r1 - r0) * e);
-        w.m.material.opacity = smooth(0, 0.22, k) * (1 - smooth(0.3, 1, k)) * (0.045 + 0.12 * w.hot);
+        w.m.material.opacity = smooth(0, 0.22, k) * (1 - smooth(0.3, 1, k)) * (0.15 + 0.2 * w.hot);
       }
       for (const s of speakers) {
         const q = Math.min(1, Math.max(0, (t - s.pump) / 0.55));
@@ -738,7 +738,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
         const hot = bursting ? Math.max(0.35, energy) : 0;
         pulse(t, 0, hot);
         pulse(t + (bursting ? 0.14 : 0.5), 1, hot);
-        nextPulse = t + (bursting ? 0.55 : 3.4);
+        nextPulse = t + (bursting ? 0.5 : 2.4);
         pulseCount++;
       }
 
