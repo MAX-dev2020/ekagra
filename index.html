@@ -737,7 +737,7 @@ const smooth = (a, b, x) => { x = Math.min(1, Math.max(0, (x - a) / (b - a))); r
       if (t >= nextPulse && (bursting || !reduce)) {
         const hot = bursting ? Math.max(0.35, energy) : 0;
         pulse(t, 0, hot);
-        pulse(t + (bursting ? 0.14 : 0.5), 1, hot);
+        pulse(t, 1, hot);                                   /* both speakers fire on the same beat */
         nextPulse = t + (bursting ? 0.5 : 2.4);
         pulseCount++;
       }
